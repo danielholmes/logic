@@ -93,22 +93,34 @@ class NegationTest(TestCase):
 
         self.assertEquals(True, result)
 
-    def test_is_logically_equivalent_self(self):
+    def test_get_logical_equivalence_self(self):
         constant = PropositionalConstant("hello")
         negation = Negation(SimpleSentence(constant))
 
-        result = negation.is_logically_equivalent(negation)
-
-        self.assertEquals(True, result)
+        result = negation.determine_logical_equivalence(negation)
+        bool_result = negation.is_logically_equivalent(negation)
+        
+        expected = LogicalEquivalence(frozenset([
+            TruthAssignment({constant : True}),
+            TruthAssignment({constant : False})
+        ]), frozenset())
+        self.assertEquals(expected, result)
+        self.assertEquals(True, bool_result)
 
     def test_is_logically_equivalent_other_same(self):
         constant = PropositionalConstant("hello")
         negation = Negation(SimpleSentence(constant))
         other_negation = Negation(SimpleSentence(constant))
 
-        result = negation.is_logically_equivalent(other_negation)
+        result = negation.determine_logical_equivalence(other_negation)
+        bool_result = negation.is_logically_equivalent(other_negation)
 
-        self.assertEquals(True, result)
+        expected = LogicalEquivalence(frozenset([
+            TruthAssignment({constant : True}),
+            TruthAssignment({constant : False})
+        ]), frozenset())
+        self.assertEquals(expected, result)
+        self.assertEquals(True, bool_result)
 
     def test_is_logically_equivalent_other_constant(self):
         constant1 = PropositionalConstant("hello1")
@@ -116,9 +128,18 @@ class NegationTest(TestCase):
         negation = Negation(SimpleSentence(constant1))
         other_negation = Negation(SimpleSentence(constant2))
 
-        result = negation.is_logically_equivalent(other_negation)
+        result = negation.determine_logical_equivalence(other_negation)
+        bool_result = negation.is_logically_equivalent(other_negation)
 
-        self.assertEquals(False, result)
+        expected = LogicalEquivalence(frozenset([
+            TruthAssignment({constant1 : True, constant2 : True}),
+            TruthAssignment({constant1 : False, constant2 : False})
+        ]), frozenset([
+            TruthAssignment({constant1 : True, constant2 : False}),
+            TruthAssignment({constant1 : False, constant2 : True})
+        ]))
+        self.assertEquals(expected, result)
+        self.assertEquals(False, bool_result)
 
 class ConjunctionTest(TestCase):
     values_data_provider = lambda: (
