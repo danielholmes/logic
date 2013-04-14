@@ -20,6 +20,10 @@ class Sentence:
     def all_constants(self):
         return frozenset([constant for constant in sub_sentence.all_constants for sub_sentence in self.sub_sentences])
 
+    @property
+    def has_multiple_sentences(self):
+        return False
+
     @abstractmethod
     def eval(self, assignment):
         pass
@@ -72,7 +76,11 @@ class CompoundSentence(Sentence):
 
     @property
     def sub_sentences(self):
-        return frozenset()
+        return tuple()
+
+    @property
+    def has_multiple_sentences(self):
+        return len(self.sub_sentences) > 1
 
     @property
     def all_constants(self):
@@ -95,10 +103,13 @@ class Negation(CompoundSentence):
 
     @property
     def sub_sentences(self):
-        return frozenset((self._target, ))
+        return tuple((self._target, ))
 
     def __str__(self):
-    	return self.symbol + str(self._target)
+        if self._target.has_multiple_sentences:
+            return self.symbol + '(' + str(self._target) + ')'
+        else:
+            return self.symbol + str(self._target)
 
     @property
     def symbol(self):
@@ -114,7 +125,7 @@ class Conjunction(CompoundSentence):
     
     @property
     def sub_sentences(self):
-        return frozenset((self._conjunct_1, self._conjunct_2))
+        return tuple((self._conjunct_1, self._conjunct_2))
 
     @property
     def symbol(self):
@@ -130,7 +141,7 @@ class Disjunction(CompoundSentence):
     
     @property
     def sub_sentences(self):
-        return frozenset((self._disjunct_1, self._disjunct_2))
+        return tuple((self._disjunct_1, self._disjunct_2))
 
     @property
     def symbol(self):
@@ -146,7 +157,7 @@ class Implication(CompoundSentence):
     
     @property
     def sub_sentences(self):
-        return frozenset((self._antecedent, self._consequent))
+        return tuple((self._antecedent, self._consequent))
 
     @property
     def symbol(self):
@@ -162,7 +173,7 @@ class Reduction(CompoundSentence):
     
     @property
     def sub_sentences(self):
-        return frozenset((self._consequent, self._antecedent))
+        return tuple((self._consequent, self._antecedent))
 
     @property
     def symbol(self):
@@ -178,7 +189,7 @@ class Equivalence(CompoundSentence):
     
     @property
     def sub_sentences(self):
-        return frozenset((self._target_1, self._target_2))
+        return tuple((self._target_1, self._target_2))
 
     @property
     def symbol(self):

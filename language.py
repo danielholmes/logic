@@ -31,6 +31,10 @@ class PropositionalVocabulary:
 
         return get_next(tuple(self._constants), frozenset())
 
+    @property
+    def constants(self):
+        return self._constants
+
 class PropositionalConstant:
     def __init__(self, label):
         if not isinstance(label, str):
