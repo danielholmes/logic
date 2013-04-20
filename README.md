@@ -1,7 +1,8 @@
 Logic Structures
 ================
 
-A model of propositional logic.
+A library that formalises logic. I'm building this while undertaking an [Introduction to Logic](https://www.coursera.org/course/intrologic), 
+so the implementation and understanding is a work in progress.
 
 
 Development Environment
@@ -20,4 +21,4 @@ While the virtual environment is active:
 
 Future
 ------
-- A text input parser
+- A lexical parser for plain text input
