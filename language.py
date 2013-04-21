@@ -40,6 +40,18 @@ class PropositionalVocabulary:
         constants = map(PropositionalConstant, names)
         return PropositionalVocabulary(constants)
 
+    def __add__(self, other):
+        return PropositionalVocabulary(self.constants.union(other.constants))
+
+    def __eq__(self, other):
+        return self.constants == other.constants
+
+    def __str__(self):
+        return str(sorted(self.constants.keys()))
+
+    def __repr__(self):
+        return "%s(%r)" % (self.__class__.__name__, map(repr, self.constants))
+
 class PropositionalConstant:
     def __init__(self, label):
         if not isinstance(label, str):

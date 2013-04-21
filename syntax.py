@@ -15,8 +15,27 @@ class Sentence:
         return self.determine_logical_equivalence(other).is_equivalent
 
     @property
+    def sub_sentences(self):
+        return tuple()
+
+    @property
     def all_constants(self):
-        return frozenset([constant for constant in sub_sentence.all_constants for sub_sentence in self.sub_sentences])
+        return frozenset([
+            constant  
+            for sub_sentence in self.sub_sentences
+            for constant in sub_sentence.all_constants
+        ])
+
+    @property
+    def vocabulary(self):
+        return PropositionalVocabulary(self.all_constants)
+
+    def logically_entails(self, other):
+        all_vocab = self.vocabulary + other.vocabulary
+        assignments = all_vocab.all_assignments
+        true_assignments = [assignment for assignment in all_vocab.all_assignments if self.eval(assignment)]
+        other_results = [other.eval(assignment) for assignment in true_assignments]
+        return all(other_results)
 
     @property
     def has_multiple_sentences(self):
@@ -25,6 +44,18 @@ class Sentence:
     @abstractmethod
     def eval(self, assignment):
         pass
+
+class SentenceSet(Sentence):
+    def __init__(self, sentences):
+        self._sentences = tuple(sentences)
+
+    @property
+    def sub_sentences(self):
+        return self._sentences
+
+    def eval(self, assignment):
+        evals = map(lambda x: x.eval(assignment), self._sentences)
+        return all(evals)
 
 class SimpleSentence(Sentence):
     def __init__(self, constant):

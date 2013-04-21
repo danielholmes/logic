@@ -14,7 +14,7 @@ def data_provider(fn_data_provider):
                 try:
                     fn(self, *i)
                 except AssertionError:
-                    print("Assertion error caught with data set %s" % i)
+                    print("Assertion error caught with data set %s" % repr(i))
                     raise
         return repl
     return test_decorator
@@ -158,6 +158,13 @@ class AbstractSentenceTest:
         self.assertEqual(True, result.is_equivalent)
         self.assertEqual(True, bool_result)
 
+    def test_logically_entails_self(self):
+        example = self.create_example_sentence()
+
+        result = example.logically_entails(example)
+
+        self.assertEqual(True, result)
+
     # Unsure if this one should be used, do some more research
     #def test_get_logical_equivalence_negation_of_self(self):
     #    example = self.create_example_sentence()
@@ -168,6 +175,64 @@ class AbstractSentenceTest:
         
     #    self.assertEqual(False, result.is_equivalent)
     #    self.assertEqual(False, bool_result)
+
+class SentenceSetTest(AbstractSentenceTest, TestCase):
+    extract_vocabulary_data_provider = lambda: (
+        (
+            ["a", "b"],
+            [
+                SimpleSentence(PropositionalConstant("a")),
+                SimpleSentence(PropositionalConstant("b"))
+            ]
+        ),
+        (
+            ["a", "b", "c"],
+            [
+                SimpleSentence(PropositionalConstant("a")),
+                SimpleSentence(PropositionalConstant("b")),
+                Conjunction(
+                    SimpleSentence(PropositionalConstant("a")),
+                    SimpleSentence(PropositionalConstant("c"))
+                )
+            ]
+        )
+    )
+
+    @data_provider(extract_vocabulary_data_provider)
+    def test_extract_vocabulary(self, constant_names, sentences):
+        example = SentenceSet(sentences)
+
+        vocab = example.vocabulary
+
+        self.assertEqual(PropositionalVocabulary.from_constant_names(constant_names), vocab)
+
+    logically_entails_data_provider = lambda: (
+        (
+            False,
+            [SimpleSentence(PropositionalConstant("a"))],
+            [SimpleSentence(PropositionalConstant("b"))]
+        ),
+        (
+            True,
+            [Negation(Negation(SimpleSentence(PropositionalConstant("a"))))],
+            [SimpleSentence(PropositionalConstant("a"))]
+        )
+    )
+
+    @data_provider(logically_entails_data_provider)
+    def test_logically_entails(self, expected, sentences_1, sentences_2):
+        set_1 = SentenceSet(sentences_1)
+        set_2 = SentenceSet(sentences_2)
+
+        result = set_1.logically_entails(set_2)
+
+        self.assertEqual(expected, result)
+
+    def create_example_sentence(self):
+        return SentenceSet([
+            SimpleSentence(PropositionalConstant("a")),
+            SimpleSentence(PropositionalConstant("b"))
+        ])
 
 class NegationTest(TestCase, AbstractSentenceTest):
     def create_example_sentence(self):
@@ -358,6 +423,14 @@ class EquivalenceTest(TestCase, AbstractSentenceTest):
         )
 
 class PropositionalVocabularyTest(TestCase):
+    def test_add_unique(self):
+        vocab_1 = PropositionalVocabulary.from_constant_names(["a"])
+        vocab_2 = PropositionalVocabulary.from_constant_names(["b"])
+
+        result = vocab_1 + vocab_2
+
+        self.assertEqual(PropositionalVocabulary.from_constant_names(["a", "b"]), result)
+
     def test_all_assignments_single(self):
         constant = PropositionalConstant("constant")
         vocab = PropositionalVocabulary([constant])

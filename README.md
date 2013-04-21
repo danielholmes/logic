@@ -37,8 +37,3 @@ Running Tests
 -------------
 While the virtual environment is active:
 ``` python ./tests.py ```
-
-Todo
-----
-Sets of premises
-Logical Entailment - set of premises logically entails a conclusion if every truth that satisfies the premise also satisfies the conclusion
