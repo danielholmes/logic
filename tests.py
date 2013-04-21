@@ -502,6 +502,19 @@ class ParserTest(TestCase):
                 )
             ), 
             "abc^(def^ghi)"
+        ),
+        (
+            Equivalence(
+                SimpleSentence(PropositionalConstant("a")),
+                Disjunction(
+                    SimpleSentence(PropositionalConstant("b")),
+                    Conjunction(
+                        SimpleSentence(PropositionalConstant("c")),
+                        Negation(SimpleSentence(PropositionalConstant("d")))
+                    )
+                )
+            ),
+            "a <=> b | c ^ -d"
         )
     )
 

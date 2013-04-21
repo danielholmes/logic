@@ -63,6 +63,14 @@ class Parser:
                 raise SyntaxError("Unknown operator to tokenise %s" % operator)
         yield EndToken()
 
+class TokenPriority:
+    LEVEL_1 = 100
+    LEVEL_2 = 80
+    LEVEL_3 = 60
+    LEVEL_4 = 40
+    LEVEL_5 = 20
+    LEVEL_6 = 0
+
 class AbstractToken:
     def nud(self, parser):
         raise SyntaxError(
@@ -75,7 +83,7 @@ class AbstractToken:
         )
 
 class LeftParenthesisToken(AbstractToken):
-    priority = 0
+    priority = TokenPriority.LEVEL_6
 
     def nud(self, parser):
         expr = parser.expression()
@@ -83,10 +91,10 @@ class LeftParenthesisToken(AbstractToken):
         return expr
 
 class RightParenthesisToken(AbstractToken):
-    priority = 0
+    priority = TokenPriority.LEVEL_6
 
 class ConstantToken(AbstractToken):
-    priority = 100
+    priority = TokenPriority.LEVEL_1
 
     def __init__(self, value):
         self.value = value
@@ -98,40 +106,40 @@ class ConstantToken(AbstractToken):
         return "%s(%r)" % (self.__class__.__name__, self.value)
 
 class EndToken(AbstractToken):
-    priority = 0
+    priority = TokenPriority.LEVEL_6
 
 class NegationToken(AbstractToken):
-    priority = 50
+    priority = TokenPriority.LEVEL_2
 
     def nud(self, parser):
-        return Negation(parser.expression(100))
+        return Negation(parser.expression(TokenPriority.LEVEL_2))
 
 class ConjunctionToken(AbstractToken):
-    priority = 40
+    priority = TokenPriority.LEVEL_3
 
     def led(self, parser, left):
-        return Conjunction(left, parser.expression(40))
+        return Conjunction(left, parser.expression(TokenPriority.LEVEL_3))
 
 class DisjunctionToken(AbstractToken):
-    priority = 40
+    priority = TokenPriority.LEVEL_4
 
     def led(self, parser, left):
-        return Disjunction(left, parser.expression(40))
+        return Disjunction(left, parser.expression(TokenPriority.LEVEL_4))
 
 class EquivalenceToken(AbstractToken):
-    priority = 20
+    priority = TokenPriority.LEVEL_5
 
     def led(self, parser, left):
-        return Equivalence(left, parser.expression(20))
+        return Equivalence(left, parser.expression(TokenPriority.LEVEL_5))
 
 class ImplicationToken(AbstractToken):
-    priority = 20
+    priority = TokenPriority.LEVEL_5
 
     def led(self, parser, left):
-        return Implication(left, parser.expression(20))
+        return Implication(left, parser.expression(TokenPriority.LEVEL_5))
 
 class ReductionToken(AbstractToken):
-    priority = 20
+    priority = TokenPriority.LEVEL_5
 
     def led(self, parser, left):
-        return Reduction(left, parser.expression(20))
+        return Reduction(left, parser.expression(TokenPriority.LEVEL_5))
