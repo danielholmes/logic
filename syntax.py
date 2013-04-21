@@ -44,8 +44,14 @@ class SimpleSentence(Sentence):
     def constant(self):
         return self._constant
 
-    def __cmp__(self, other):
-        return cmp(self.constant, other.constant)
+    def __hash__(self):
+        return hash(self.constant)
+
+    def __eq__(self, other):
+        return self.constant == other.constant
+
+    def __gt__(self, other):
+        return self.constant < other.constant
 
     def __str__(self):
         return self._constant.label
@@ -98,13 +104,11 @@ class CompoundSentence(Sentence):
     def symbol(self):
         pass
 
-    def __cmp__(self, other):
-        for i, sub_sentence in enumerate(self.sub_sentences):
-            other_sentence = other.sub_sentences[i]
-            cmp_sub = cmp(sub_sentence, other_sentence)
-            if cmp_sub != 0:
-                return cmp_sub
-        return 0
+    def __eq__(self, other):
+        return self.sub_sentences == other.sub_sentences
+
+    def __gt__(self, other):
+        return self.sub_sentences < other.sub_sentences
 
     def __str__(self):
         joiner = ' %s ' % self.symbol
@@ -133,6 +137,9 @@ class Negation(CompoundSentence):
             return self.symbol + '(' + str(self._target) + ')'
         else:
             return self.symbol + str(self._target)
+
+    def __hash__(self):
+        return hash(self.target)
 
     @property
     def symbol(self):

@@ -18,26 +18,26 @@ class Parser:
     token_pat = re.compile("\s*(?:([a-z]{1}[a-zA-Z\_0-9]*)|(\-|\^|\||\<\=\>|\=\>|\<\=|\(|\)))")
 
     def __call__(self, program):
-        self.next = self.tokenise(program).next
-        self.token = self.next()
+        self.stream = self.tokenise(program)
+        self.token = next(self.stream)
         if self.token.__class__ == EndToken:
             raise ParsingError("Empty expression")
         return self.expression()
 
     def expression(self, rbp = 0):
         t = self.token
-        self.token = self.next()
+        self.token = next(self.stream)
         left = t.nud(self)
         while rbp < self.token.priority:
             t = self.token
-            self.token = self.next()
+            self.token = next(self.stream)
             left = t.led(self, left)
         return left
 
     def advance(self, token_type):
         if self.token.__class__ != token_type:
             raise SyntaxError("Expected %r" % token_type.__name__)
-        self.token = self.next()
+        self.token = next(self.stream)
 
     def tokenise(self, program):
         for literal_value, operator in Parser.token_pat.findall(program):

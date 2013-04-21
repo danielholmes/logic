@@ -15,7 +15,9 @@ class TruthTable:
             for display_column in display_matrix
         ]
 
-        row_divider = reduce(lambda accu, x: accu + "-" + ("-" * x) + "-+", col_sizes, "+")
+        row_divider = "+"
+        for col_size in col_sizes:
+            row_divider += "-" + ("-" * col_size) + "-+"
 
         rows = [row_divider]
         num_rows = len(display_matrix[0])
@@ -42,7 +44,7 @@ class TruthTable:
         headings = [str(column[0]) for column in matrix]
         all_raw_column_values = [column[1:] for column in matrix]
         all_display_column_values = [
-            map(display_map.get, raw_column_values)
+            [display_map[raw_value] for raw_value in raw_column_values]
             for raw_column_values in all_raw_column_values
         ]
         return [

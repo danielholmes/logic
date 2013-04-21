@@ -60,8 +60,11 @@ class PropositionalConstant:
     def label(self):
         return self._label
 
-    def __cmp__(self, other):
-        return cmp(self.label, other.label)
+    def __eq__(self, other):
+        return self.label == other.label
+
+    def __gt__(self, other):
+        return self.label < other.label
 
     def __hash__(self):
         return hash(self.label)
@@ -88,7 +91,9 @@ class TruthAssignment:
         return self._constants_to_value.get(constant)
 
     def __add__(self, other):
-        return TruthAssignment(dict(self._constants_to_value.items() + other.constants_to_value.items()))
+        combined = self._constants_to_value.copy()
+        combined.update(other.constants_to_value)
+        return TruthAssignment(combined)
 
     def __delitem__(self, constant):
         self._constants_to_value.__delattr__(constant)
@@ -101,16 +106,15 @@ class TruthAssignment:
             raise Exception('Value must be a boolean')
         self._constants_to_value.__setattr__(constant, value)
 
-    def __cmp__(self, other):
-        keys_cmp = cmp(self.constants_to_value.keys(), other.constants_to_value.keys())
-        if keys_cmp == 0:
-            flip_bool_order = lambda x: not x
-            return cmp(
-                map(flip_bool_order, self.constants_to_value.values()), 
-                map(flip_bool_order, other.constants_to_value.values())
-            )
-        else:
-            return keys_cmp
+    def __eq__(self, other):
+        return self.constants_to_value == other.constants_to_value
+
+    def __gt__(self, other):
+        keys = self.constants_to_value.keys()
+        other_keys = other.constants_to_value.keys()
+        values = [self.constants_to_value[i] for i in keys]
+        other_values = [other.constants_to_value[i] for i in other_keys]
+        return keys < other_keys or (keys == other_keys and values < other_values)
 
     def __repr__(self):
         return 'TruthAssignment(%r)' % self._constants_to_value
