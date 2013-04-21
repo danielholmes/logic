@@ -64,7 +64,7 @@ class PropositionalConstant:
         return self.label == other.label
 
     def __gt__(self, other):
-        return self.label < other.label
+        return self.label > other.label
 
     def __hash__(self):
         return hash(self.label)
@@ -86,6 +86,10 @@ class TruthAssignment:
     @property
     def constants_to_value(self):
         return self._constants_to_value
+
+    @property
+    def constants(self):
+        return self.constants_to_value.keys()
 
     def get(self, constant):
         return self._constants_to_value.get(constant)
@@ -110,10 +114,10 @@ class TruthAssignment:
         return self.constants_to_value == other.constants_to_value
 
     def __gt__(self, other):
-        keys = self.constants_to_value.keys()
-        other_keys = other.constants_to_value.keys()
-        values = [self.constants_to_value[i] for i in keys]
-        other_values = [other.constants_to_value[i] for i in other_keys]
+        keys = sorted(self.constants)
+        other_keys = sorted(other.constants)
+        values = [self.get(i) for i in keys]
+        other_values = [other.get(i) for i in other_keys]
         return keys < other_keys or (keys == other_keys and values < other_values)
 
     def __repr__(self):

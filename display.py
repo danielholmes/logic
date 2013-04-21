@@ -54,12 +54,13 @@ class TruthTable:
 
     @property
     def matrix(self):
-        constant_sentences = frozenset(map(SimpleSentence, self._vocabulary.constants))
+        constant_sentences = map(SimpleSentence, self._vocabulary.constants)
         all_sentences = sorted(constant_sentences) + list(self._sentences)
         table = [""] * len(all_sentences)
 
+        sorted_assignments = sorted(self._vocabulary.all_assignments)
         for index, sentence in enumerate(all_sentences):
-            assignment_column = [sentence.eval(assignment) for assignment in sorted(self._vocabulary.all_assignments)]
+            assignment_column = [sentence.eval(assignment) for assignment in sorted_assignments]
             column = [str(sentence)] + assignment_column
             table[index] = column
 

@@ -51,7 +51,7 @@ class SimpleSentence(Sentence):
         return self.constant == other.constant
 
     def __gt__(self, other):
-        return self.constant < other.constant
+        return self.constant > other.constant
 
     def __str__(self):
         return self._constant.label

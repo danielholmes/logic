@@ -46,6 +46,30 @@ class PropositionalConstantTest(TestCase):
         with self.assertRaises(InvalidConstantLabelException):
             PropositionalConstant(label)
 
+    def test_eq(self):
+        constant_1 = PropositionalConstant("a")
+        constant_2 = PropositionalConstant("a")
+
+        self.assertEqual(True, constant_1 == constant_2)
+
+    def test_not_eq(self):
+        constant_1 = PropositionalConstant("a")
+        constant_2 = PropositionalConstant("b")
+
+        self.assertEqual(False, constant_1 == constant_2)
+
+    def test_gt(self):
+        constant_1 = PropositionalConstant("b")
+        constant_2 = PropositionalConstant("a")
+
+        self.assertEqual(True, constant_1 > constant_2)
+
+    def test_not_gt(self):
+        constant_1 = PropositionalConstant("a")
+        constant_2 = PropositionalConstant("b")
+
+        self.assertEqual(False, constant_1 > constant_2)
+
 class TruthAssignmentTest(TestCase):
     def test_get_value_valid(self):
         constant = PropositionalConstant("hello")
@@ -63,6 +87,27 @@ class TruthAssignmentTest(TestCase):
         result = a.get(new_constant)
 
         self.assertEqual(None, result)
+
+    lt_data_provider = lambda: (
+        (
+            TruthAssignment({PropositionalConstant("a"): True,  PropositionalConstant("b"): True}),
+            TruthAssignment({PropositionalConstant("a"): False, PropositionalConstant("b"): False})
+        ),
+        (
+            TruthAssignment({PropositionalConstant("a"): True,  PropositionalConstant("b"): True}),
+            TruthAssignment({PropositionalConstant("a"): True,  PropositionalConstant("b"): False})
+        ),
+        (
+            TruthAssignment({PropositionalConstant("a"): True,  PropositionalConstant("b"): False}),
+            TruthAssignment({PropositionalConstant("a"): False, PropositionalConstant("b"): False})
+        )
+    )
+
+    @data_provider(lt_data_provider)
+    def test_lt(self, assignment_1, assignment_2):
+        result = assignment_1 < assignment_2
+
+        self.assertEqual(True, result)
 
 class SimpleSentenceTest(TestCase):
     def test_eval(self):
@@ -88,6 +133,14 @@ class SimpleSentenceTest(TestCase):
         sentence = SimpleSentence(constant)
 
         self.assertEqual(frozenset((constant, )), sentence.all_constants)
+
+    def test_gt(self):
+        sentence_1 = SimpleSentence(PropositionalConstant("b"))
+        sentence_2 = SimpleSentence(PropositionalConstant("a"))
+
+        result = sentence_1 > sentence_2
+
+        self.assertEqual(True, result)
 
 class AbstractSentenceTest:
     __metaclass__ = ABCMeta
