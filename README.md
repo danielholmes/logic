@@ -1,5 +1,7 @@
-Logic Structures
-================
+Logic Formalisation
+===================
+
+[![Build Status](https://api.travis-ci.org/danielholmes/logic.png)](http://travis-ci.org/danielholmes/logic)
 
 A library that formalises logic. I'm building this while undertaking an [Introduction to Logic](https://www.coursera.org/course/intrologic), 
 so the implementation and understanding is a work in progress.
