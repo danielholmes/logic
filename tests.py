@@ -403,10 +403,10 @@ class TruthTableTest(TestCase):
         self.assertEquals("""+---+---+----+
 | a | b | -a |
 +---+---+----+
-| 1 | 1 | 0  |
-| 1 | 0 | 0  |
-| 0 | 1 | 1  |
-| 0 | 0 | 1  |
+| 1 | 1 |  0 |
+| 1 | 0 |  0 |
+| 0 | 1 |  1 |
+| 0 | 0 |  1 |
 +---+---+----+""", result)
 
     def test_basic_matrix(self):

@@ -1,4 +1,5 @@
 from syntax import *
+from math import ceil, floor
 
 class TruthTable:
     def __init__(self, vocabulary, sentences = []):
@@ -21,7 +22,10 @@ class TruthTable:
         for row_num in range(0, num_rows):
             row_values = [display_column[row_num] for display_column in display_matrix]
             padded_row_values = map(
-                lambda x_enum: x_enum[1] + (" " * (col_sizes[x_enum[0]] - len(x_enum[1]))),
+                lambda x_enum: 
+                    (" " * int(ceil(float(col_sizes[x_enum[0]] - len(x_enum[1])) / 2))) +
+                    x_enum[1] + 
+                    (" " * int(floor(float(col_sizes[x_enum[0]] - len(x_enum[1])) / 2))),
                 enumerate(row_values)
             )
             rows.append("| " + " | ".join(padded_row_values) + " |")
