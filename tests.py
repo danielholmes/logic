@@ -31,7 +31,7 @@ class PropositionalConstantTest(TestCase):
     def test_valid_constant_labels(self, label):
         c = PropositionalConstant(label)
 
-        self.assertEquals(label, c.label)
+        self.assertEqual(label, c.label)
 
     invalid_labels_data_provider = lambda: (
         ('Raining', ),
@@ -53,7 +53,7 @@ class TruthAssignmentTest(TestCase):
 
         result = a.get(constant)
 
-        self.assertEquals(True, result)
+        self.assertEqual(True, result)
 
     def test_get_value_invalid(self):
         constant = PropositionalConstant("hello")
@@ -62,7 +62,7 @@ class TruthAssignmentTest(TestCase):
 
         result = a.get(new_constant)
 
-        self.assertEquals(None, result)
+        self.assertEqual(None, result)
 
 class SimpleSentenceTest(TestCase):
     def test_eval(self):
@@ -72,7 +72,7 @@ class SimpleSentenceTest(TestCase):
 
         result = sentence.eval(assignment)
 
-        self.assertEquals(True, result)
+        self.assertEqual(True, result)
 
     def test_eval_not_found(self):
         constant = PropositionalConstant("hello")
@@ -87,7 +87,7 @@ class SimpleSentenceTest(TestCase):
         constant = PropositionalConstant("hello")
         sentence = SimpleSentence(constant)
 
-        self.assertEquals(frozenset((constant, )), sentence.all_constants)
+        self.assertEqual(frozenset((constant, )), sentence.all_constants)
 
 class AbstractSentenceTest:
     __metaclass__ = ABCMeta
@@ -102,8 +102,8 @@ class AbstractSentenceTest:
         result = example.determine_logical_equivalence(example)
         bool_result = example.is_logically_equivalent(example)
         
-        self.assertEquals(True, result.is_equivalent)
-        self.assertEquals(True, bool_result)
+        self.assertEqual(True, result.is_equivalent)
+        self.assertEqual(True, bool_result)
 
     # Unsure if this one should be used, do some more research
     #def test_get_logical_equivalence_negation_of_self(self):
@@ -113,8 +113,8 @@ class AbstractSentenceTest:
     #    result = example.determine_logical_equivalence(negation)
     #    bool_result = example.is_logically_equivalent(example)
         
-    #    self.assertEquals(False, result.is_equivalent)
-    #    self.assertEquals(False, bool_result)
+    #    self.assertEqual(False, result.is_equivalent)
+    #    self.assertEqual(False, bool_result)
 
 class NegationTest(TestCase, AbstractSentenceTest):
     def create_example_sentence(self):
@@ -127,7 +127,7 @@ class NegationTest(TestCase, AbstractSentenceTest):
 
         result = negation.eval(assignment)
 
-        self.assertEquals(False, result)
+        self.assertEqual(False, result)
 
     def test_eval_false(self):
         constant = PropositionalConstant("hello")
@@ -136,7 +136,7 @@ class NegationTest(TestCase, AbstractSentenceTest):
 
         result = negation.eval(assignment)
 
-        self.assertEquals(True, result)
+        self.assertEqual(True, result)
 
     def test_is_logically_equivalent_other_same(self):
         constant = PropositionalConstant("hello")
@@ -150,8 +150,8 @@ class NegationTest(TestCase, AbstractSentenceTest):
             TruthAssignment({constant : True}),
             TruthAssignment({constant : False})
         ]), frozenset())
-        self.assertEquals(expected, result)
-        self.assertEquals(True, bool_result)
+        self.assertEqual(expected, result)
+        self.assertEqual(True, bool_result)
 
     def test_is_logically_equivalent_other_constant(self):
         constant1 = PropositionalConstant("hello1")
@@ -169,8 +169,8 @@ class NegationTest(TestCase, AbstractSentenceTest):
             TruthAssignment({constant1 : True, constant2 : False}),
             TruthAssignment({constant1 : False, constant2 : True})
         ]))
-        self.assertEquals(expected, result)
-        self.assertEquals(False, bool_result)
+        self.assertEqual(expected, result)
+        self.assertEqual(False, bool_result)
 
 class ConjunctionTest(TestCase, AbstractSentenceTest):
     values_data_provider = lambda: (
@@ -189,14 +189,14 @@ class ConjunctionTest(TestCase, AbstractSentenceTest):
 
         result = conjunction.eval(assignment)
 
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
     def test_all_constants(self):
         conjunct_1 = PropositionalConstant("conjunct_1")
         conjunct_2 = PropositionalConstant("conjunct_2")
         conjunction = Conjunction(SimpleSentence(conjunct_1), SimpleSentence(conjunct_2))
 
-        self.assertEquals(frozenset((conjunct_1, conjunct_2)), conjunction.all_constants)
+        self.assertEqual(frozenset((conjunct_1, conjunct_2)), conjunction.all_constants)
 
     def create_example_sentence(self):
         return Conjunction(
@@ -221,7 +221,7 @@ class DisjunctionTest(TestCase, AbstractSentenceTest):
 
         result = disjunction.eval(assignment)
 
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
     def create_example_sentence(self):
         return Disjunction(
@@ -246,7 +246,7 @@ class ImplicationTest(TestCase, AbstractSentenceTest):
 
         result = implication.eval(assignment)
 
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
     def create_example_sentence(self):
         return Implication(
@@ -271,7 +271,7 @@ class ReductionTest(TestCase, AbstractSentenceTest):
 
         result = reduction.eval(assignment)
 
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
     def create_example_sentence(self):
         return Reduction(
@@ -296,7 +296,7 @@ class EquivalenceTest(TestCase, AbstractSentenceTest):
 
         result = equivalence.eval(assignment)
 
-        self.assertEquals(expected, result)
+        self.assertEqual(expected, result)
 
     def create_example_sentence(self):
         return Equivalence(
@@ -311,7 +311,7 @@ class PropositionalVocabularyTest(TestCase):
 
         expected = frozenset([TruthAssignment({constant : True}), TruthAssignment({constant : False})])
 
-        self.assertEquals(expected, vocab.all_assignments)
+        self.assertEqual(expected, vocab.all_assignments)
 
     def test_all_assignments_multiple(self):
         c1 = PropositionalConstant("one")
@@ -325,7 +325,7 @@ class PropositionalVocabularyTest(TestCase):
             TruthAssignment({c1 : False, c2 : False})
         ])
 
-        self.assertEquals(expected, vocab.all_assignments)
+        self.assertEqual(expected, vocab.all_assignments)
 
 class ParserTest(TestCase):
     valid_data_provider = lambda: (
@@ -371,7 +371,7 @@ class ParserTest(TestCase):
 
         expression = parser(string_input)
 
-        self.assertEquals(expected, expression)
+        self.assertEqual(expected, expression)
 
     invalid_data_provider = lambda: (
         ("A", ),
@@ -395,7 +395,7 @@ class TruthTableTest(TestCase):
 
         result = table.simple_string
 
-        self.assertEquals("""+---+
+        self.assertEqual("""+---+
 | a |
 +---+
 | 1 |
@@ -412,7 +412,7 @@ class TruthTableTest(TestCase):
 
         result = table.simple_string
 
-        self.assertEquals("""+---+---+----+
+        self.assertEqual("""+---+---+----+
 | a | b | -a |
 +---+---+----+
 | 1 | 1 |  0 |
@@ -427,7 +427,7 @@ class TruthTableTest(TestCase):
 
         result = table.matrix
 
-        self.assertEquals([["a", True, False]], result)
+        self.assertEqual([["a", True, False]], result)
 
     def test_larger_matrix(self):
         a_constant = PropositionalConstant("a")
@@ -439,7 +439,7 @@ class TruthTableTest(TestCase):
 
         result = table.matrix
 
-        self.assertEquals([
+        self.assertEqual([
             ["a", True, True, False, False],
             ["b", True, False, True, False],
             ["-a", False, False, True, True]
