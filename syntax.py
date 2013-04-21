@@ -83,7 +83,7 @@ class SimpleSentence(Sentence):
         return hash(self.constant)
 
     def __eq__(self, other):
-        return self.constant == other.constant
+        return self.__class__ == other.__class__ and self.constant == other.constant
 
     def __gt__(self, other):
         return self.constant > other.constant
@@ -112,7 +112,9 @@ class LogicalEquivalence:
         return self._unequivalent_assignments
 
     def __eq__(self, other):
-        return self.equivalent_assignments == other.equivalent_assignments and self.unequivalent_assignments == other.unequivalent_assignments
+        return (self.__class__ == other.__class__ and 
+            self.equivalent_assignments == other.equivalent_assignments and 
+            self.unequivalent_assignments == other.unequivalent_assignments)
 
     def __repr__(self):
         return '%s(%r, %r)' % (self.__class__.__name__, self.equivalent_assignments, self.unequivalent_assignments)
@@ -140,7 +142,7 @@ class CompoundSentence(Sentence):
         pass
 
     def __eq__(self, other):
-        return self.sub_sentences == other.sub_sentences
+        return self.__class__ == other.__class__ and self.sub_sentences == other.sub_sentences
 
     def __hash__(self):
         return hash(self.sub_sentences)

@@ -44,7 +44,7 @@ class PropositionalVocabulary:
         return PropositionalVocabulary(self.constants.union(other.constants))
 
     def __eq__(self, other):
-        return self.constants == other.constants
+        return self.__class__ == other.__class__ and self.constants == other.constants
 
     def __str__(self):
         return str(sorted(self.constants.keys()))
@@ -73,7 +73,7 @@ class PropositionalConstant:
         return self._label
 
     def __eq__(self, other):
-        return self.label == other.label
+        return self.__class__ == other.__class__ and self.label == other.label
 
     def __gt__(self, other):
         return self.label > other.label
@@ -123,7 +123,7 @@ class TruthAssignment:
         self._constants_to_value.__setattr__(constant, value)
 
     def __eq__(self, other):
-        return self.constants_to_value == other.constants_to_value
+        return self.__class__ == other.__class__ and self.constants_to_value == other.constants_to_value
 
     def __gt__(self, other):
         keys = sorted(self.constants)

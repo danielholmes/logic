@@ -1,4 +1,5 @@
-from syntax import *
+from syntax import SimpleSentence, SentenceSet
+from language import PropositionalVocabulary
 from math import ceil, floor
 
 class TruthTable:
@@ -23,13 +24,8 @@ class TruthTable:
         num_rows = len(display_matrix[0])
         for row_num in range(0, num_rows):
             row_values = [display_column[row_num] for display_column in display_matrix]
-            padded_row_values = map(
-                lambda x_enum: 
-                    (" " * int(ceil(float(col_sizes[x_enum[0]] - len(x_enum[1])) / 2))) +
-                    x_enum[1] + 
-                    (" " * int(floor(float(col_sizes[x_enum[0]] - len(x_enum[1])) / 2))),
-                enumerate(row_values)
-            )
+            row_values_and_sizes = zip(row_values, col_sizes)
+            padded_row_values = map(lambda x: x[0].center(x[1], " "), row_values_and_sizes)
             rows.append("| " + " | ".join(padded_row_values) + " |")
             if row_num == 0:
                 rows.append(row_divider)
@@ -61,7 +57,7 @@ class TruthTable:
         sorted_assignments = sorted(self._vocabulary.all_assignments)
         for index, sentence in enumerate(all_sentences):
             assignment_column = [sentence.eval(assignment) for assignment in sorted_assignments]
-            column = [str(sentence)] + assignment_column
+            column = [sentence] + assignment_column
             table[index] = column
 
         return table

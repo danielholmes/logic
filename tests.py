@@ -158,6 +158,16 @@ class AbstractSentenceTest:
         self.assertEqual(True, result.is_equivalent)
         self.assertEqual(True, bool_result)
 
+    def test_get_logical_equivalence_negation_of_self(self):
+        example = self.create_example_sentence()
+        negation = Negation(example)
+
+        result = example.determine_logical_equivalence(negation)
+        bool_result = example.is_logically_equivalent(negation)
+
+        self.assertEqual(False, result.is_equivalent)
+        self.assertEqual(False, bool_result)
+
     def test_logically_entails_self(self):
         example = self.create_example_sentence()
 
@@ -165,21 +175,20 @@ class AbstractSentenceTest:
 
         self.assertEqual(True, result)
 
+    def test_not_logically_entails_negation_self(self):
+        example = self.create_example_sentence()
+        example_neg = Negation(example)
+
+        result = example.logically_entails(example_neg)
+
+        self.assertEqual(False, result)
+
     def test_hash(self):
         example = self.create_example_sentence()
 
         result = hash(example)
 
-    # Unsure if this one should be used, do some more research
-    #def test_get_logical_equivalence_negation_of_self(self):
-    #    example = self.create_example_sentence()
-    #    negation = Negation(example)
-
-    #    result = example.determine_logical_equivalence(negation)
-    #    bool_result = example.is_logically_equivalent(example)
-        
-    #    self.assertEqual(False, result.is_equivalent)
-    #    self.assertEqual(False, bool_result)
+        self.assertEqual(int, type(result))
 
 class SentenceSetTest(AbstractSentenceTest, TestCase):
     extract_vocabulary_data_provider = lambda: (
@@ -526,7 +535,8 @@ class TruthTableTest(TestCase):
 
         result = table.simple_string
 
-        self.assertEqual("""+---+
+        self.assertEqual(
+"""+---+
 | a |
 +---+
 | 1 |
@@ -543,37 +553,38 @@ class TruthTableTest(TestCase):
 
         result = table.simple_string
 
-        self.assertEqual("""+---+---+----+
+        self.assertEqual(
+"""+---+---+----+
 | a | b | -a |
 +---+---+----+
-| 1 | 1 |  0 |
-| 1 | 0 |  0 |
-| 0 | 1 |  1 |
-| 0 | 0 |  1 |
+| 1 | 1 | 0  |
+| 1 | 0 | 0  |
+| 0 | 1 | 1  |
+| 0 | 0 | 1  |
 +---+---+----+""", result)
 
     def test_basic_matrix(self):
-        vocab = PropositionalVocabulary([PropositionalConstant("a")])
+        constant_a = PropositionalConstant("a")
+        vocab = PropositionalVocabulary([constant_a])
         table = TruthTable(vocab)
 
         result = table.matrix
 
-        self.assertEqual([["a", True, False]], result)
+        self.assertEqual([[SimpleSentence(constant_a), True, False]], result)
 
     def test_larger_matrix(self):
         a_constant = PropositionalConstant("a")
-        vocab = PropositionalVocabulary([
-            a_constant,
-            PropositionalConstant("b")
-        ])
-        table = TruthTable(vocab, [Negation(SimpleSentence(a_constant))])
+        b_constant = PropositionalConstant("b")
+        negation_a = Negation(SimpleSentence(a_constant))
+        vocab = PropositionalVocabulary([a_constant, b_constant])
+        table = TruthTable(vocab, [negation_a])
 
         result = table.matrix
 
         self.assertEqual([
-            ["a", True, True, False, False],
-            ["b", True, False, True, False],
-            ["-a", False, False, True, True]
+            [SimpleSentence(a_constant), True, True, False, False],
+            [SimpleSentence(b_constant), True, False, True, False],
+            [negation_a, False, False, True, True]
         ], result)
 
 if __name__ == '__main__':
