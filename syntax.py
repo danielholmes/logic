@@ -5,14 +5,14 @@ class Sentence:
     __metaclass__ = ABCMeta
 
     def determine_logical_equivalence(self, other):
-    	all_constants = other.all_constants.union(self.all_constants)
+        all_constants = other.all_constants.union(self.all_constants)
         vocab = PropositionalVocabulary(all_constants)
         equivalent_assignments = [assignment for assignment in vocab.all_assignments if self.eval(assignment) == other.eval(assignment)]
         unequivalent_assignments = [assignment for assignment in vocab.all_assignments if self.eval(assignment) != other.eval(assignment)]
         return LogicalEquivalence(equivalent_assignments, unequivalent_assignments)
 
     def is_logically_equivalent(self, other):
-    	return self.determine_logical_equivalence(other).is_equivalent
+        return self.determine_logical_equivalence(other).is_equivalent
 
     @property
     def all_constants(self):
@@ -48,33 +48,33 @@ class SimpleSentence(Sentence):
         return cmp(self.constant, other.constant)
 
     def __str__(self):
-    	return self._constant.label
+        return self._constant.label
 
     def __repr__(self):
         return '%s(%r)' % (self.__class__.__name__, self.constant)
 
 class LogicalEquivalence:
-	def __init__(self, equivalent_assignments, unequivalent_assignments):
-		self._equivalent_assignments = frozenset(equivalent_assignments)
-		self._unequivalent_assignments = frozenset(unequivalent_assignments)
+    def __init__(self, equivalent_assignments, unequivalent_assignments):
+        self._equivalent_assignments = frozenset(equivalent_assignments)
+        self._unequivalent_assignments = frozenset(unequivalent_assignments)
 
-	@property
-	def is_equivalent(self):
-		return len(self._unequivalent_assignments) == 0
+    @property
+    def is_equivalent(self):
+        return len(self._unequivalent_assignments) == 0
 
-	@property
-	def equivalent_assignments(self):
-		return self._equivalent_assignments
+    @property
+    def equivalent_assignments(self):
+        return self._equivalent_assignments
 
-	@property
-	def unequivalent_assignments(self):
-		return self._unequivalent_assignments
+    @property
+    def unequivalent_assignments(self):
+        return self._unequivalent_assignments
 
-	def __eq__(self, other):
-		return self.equivalent_assignments == other.equivalent_assignments and self.unequivalent_assignments == other.unequivalent_assignments
+    def __eq__(self, other):
+        return self.equivalent_assignments == other.equivalent_assignments and self.unequivalent_assignments == other.unequivalent_assignments
 
-	def __repr__(self):
-		return '%s(%r, %r)' % (self.__class__.__name__, self.equivalent_assignments, self.unequivalent_assignments)
+    def __repr__(self):
+        return '%s(%r, %r)' % (self.__class__.__name__, self.equivalent_assignments, self.unequivalent_assignments)
 
 class ConstantDoesntExistException(Exception):
     pass
@@ -107,8 +107,8 @@ class CompoundSentence(Sentence):
         return 0
 
     def __str__(self):
-    	joiner = ' %s ' % self.symbol
-    	return joiner.join(map(str, self.sub_sentences))
+        joiner = ' %s ' % self.symbol
+        return joiner.join(map(str, self.sub_sentences))
 
     def __repr__(self):
         return '%s(%s)' % (self.__class__.__name__, ", ".join(map(repr, self.sub_sentences)))
