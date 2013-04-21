@@ -152,7 +152,7 @@ class CompoundSentence(Sentence):
 
     def __str__(self):
         joiner = ' %s ' % self.symbol
-        return joiner.join(map(str, self.sub_sentences))
+        return "(" + joiner.join(map(str, self.sub_sentences)) + ")"
 
     def __repr__(self):
         return '%s(%s)' % (self.__class__.__name__, ", ".join(map(repr, self.sub_sentences)))
