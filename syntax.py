@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod, abstractproperty
 from language import PropositionalVocabulary
 
-class Sentence:
+class Sentence(object):
     __metaclass__ = ABCMeta
 
     def determine_logical_equivalence(self, other):
@@ -94,7 +94,7 @@ class SimpleSentence(Sentence):
     def __repr__(self):
         return '%s(%r)' % (self.__class__.__name__, self.constant)
 
-class LogicalEquivalence:
+class LogicalEquivalence(object):
     def __init__(self, equivalent_assignments, unequivalent_assignments):
         self._equivalent_assignments = frozenset(equivalent_assignments)
         self._unequivalent_assignments = frozenset(unequivalent_assignments)

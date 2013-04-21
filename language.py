@@ -1,6 +1,6 @@
 import re
 
-class PropositionalVocabulary:
+class PropositionalVocabulary(object):
     def __init__(self, constants):
         self._constants = frozenset(constants)
 
@@ -52,7 +52,7 @@ class PropositionalVocabulary:
     def __repr__(self):
         return "%s(%r)" % (self.__class__.__name__, map(repr, self.constants))
 
-class PropositionalConstant:
+class PropositionalConstant(object):
     def __init__(self, label):
         if not isinstance(label, str):
             raise InvalidConstantLabelException('Must be a string')
@@ -90,7 +90,7 @@ class PropositionalConstant:
 class InvalidConstantLabelException(BaseException):
     pass
 
-class TruthAssignment:
+class TruthAssignment(object):
     def __init__(self, constants_to_value):
         # TODO: assert values are boolean
         self._constants_to_value = constants_to_value

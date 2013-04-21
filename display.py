@@ -2,7 +2,7 @@ from syntax import SimpleSentence, SentenceSet
 from language import PropositionalVocabulary
 from math import ceil, floor
 
-class TruthTable:
+class TruthTable(object):
     def __init__(self, vocabulary, sentences = []):
         self._vocabulary = vocabulary
         self._sentences = tuple(sentences)

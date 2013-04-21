@@ -142,7 +142,7 @@ class SimpleSentenceTest(TestCase):
 
         self.assertEqual(True, result)
 
-class AbstractSentenceTest:
+class AbstractSentenceTest(object):
     __metaclass__ = ABCMeta
 
     @abstractmethod

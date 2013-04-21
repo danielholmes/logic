@@ -14,7 +14,7 @@ class ParsingError(Exception):
 class SyntaxError(ParsingError):
     pass
 
-class Parser:
+class Parser(object):
     token_pat = re.compile("\s*(?:([a-z]{1}[a-zA-Z\_0-9]*)|(\-|\^|\||\<\=\>|\=\>|\<\=|\(|\)))")
 
     def __call__(self, program):
@@ -63,7 +63,7 @@ class Parser:
                 raise SyntaxError("Unknown operator to tokenise %s" % operator)
         yield EndToken()
 
-class TokenPriority:
+class TokenPriority(object):
     LEVEL_1 = 100
     LEVEL_2 = 80
     LEVEL_3 = 60
@@ -71,7 +71,7 @@ class TokenPriority:
     LEVEL_5 = 20
     LEVEL_6 = 0
 
-class AbstractToken:
+class AbstractToken(object):
     def nud(self, parser):
         raise SyntaxError(
             "Syntax error (%r)." % self
