@@ -4,6 +4,10 @@ from language import *
 from syntax import *
 import re
 
+def parse(program):
+    parser = Parser()
+    return parser(program)
+
 class ParsingError(Exception):
     pass
 

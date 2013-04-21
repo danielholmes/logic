@@ -8,20 +8,16 @@ so the implementation and understanding is a work in progress.
 
 Example Usage
 -------------
-See ``` example1.py ```
+See ``` example.py ```
 ```python
 from language import PropositionalVocabulary, PropositionalConstant
 from display import TruthTable
-from parser import Parser
+from parser import parse
 
-parser = Parser()
-conjunction = parser("a^b")
-disjunction = parser("a|b")
+conjunction = parse("a^b")
+disjunction = parse("a|b")
 
-vocabulary = PropositionalVocabulary([
-    PropositionalConstant("a"),
-    PropositionalConstant("b")
-])
+vocabulary = PropositionalVocabulary.from_constant_names(["a", "b"])
 table = TruthTable(vocabulary, [conjunction, disjunction])
 print(table.simple_string)
 ```

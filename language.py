@@ -35,6 +35,11 @@ class PropositionalVocabulary:
     def constants(self):
         return self._constants
 
+    @staticmethod
+    def from_constant_names(names):
+        constants = map(PropositionalConstant, names)
+        return PropositionalVocabulary(constants)
+
 class PropositionalConstant:
     def __init__(self, label):
         if not isinstance(label, str):
