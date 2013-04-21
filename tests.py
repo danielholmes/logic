@@ -165,6 +165,11 @@ class AbstractSentenceTest:
 
         self.assertEqual(True, result)
 
+    def test_hash(self):
+        example = self.create_example_sentence()
+
+        result = hash(example)
+
     # Unsure if this one should be used, do some more research
     #def test_get_logical_equivalence_negation_of_self(self):
     #    example = self.create_example_sentence()

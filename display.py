@@ -65,3 +65,11 @@ class TruthTable:
             table[index] = column
 
         return table
+
+    @staticmethod
+    def for_sentence_set(sentence_set):
+        return TruthTable(sentence_set.vocabulary, sentence_set.sentences)
+
+    @staticmethod
+    def for_sentences(sentences):
+        return TruthTable.for_sentence_set(SentenceSet(sentences))

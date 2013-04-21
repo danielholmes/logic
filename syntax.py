@@ -50,6 +50,10 @@ class SentenceSet(Sentence):
         self._sentences = tuple(sentences)
 
     @property
+    def sentences(self):
+        return self._sentences
+
+    @property
     def sub_sentences(self):
         return self._sentences
 
@@ -137,6 +141,9 @@ class CompoundSentence(Sentence):
 
     def __eq__(self, other):
         return self.sub_sentences == other.sub_sentences
+
+    def __hash__(self):
+        return hash(self.sub_sentences)
 
     def __gt__(self, other):
         return self.sub_sentences < other.sub_sentences
