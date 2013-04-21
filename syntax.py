@@ -1,5 +1,3 @@
-# encoding: utf-8
-
 from abc import ABCMeta, abstractmethod, abstractproperty
 from language import PropositionalVocabulary
 
@@ -42,8 +40,18 @@ class SimpleSentence(Sentence):
             raise ConstantDoesntExistException('Constant %s not assigned' % self._constant.label)
         return value
 
+    @property
+    def constant(self):
+        return self._constant
+
+    def __cmp__(self, other):
+        return cmp(self.constant, other.constant)
+
     def __str__(self):
     	return self._constant.label
+
+    def __repr__(self):
+        return '%s(%r)' % (self.__class__.__name__, self.constant)
 
 class LogicalEquivalence:
 	def __init__(self, equivalent_assignments, unequivalent_assignments):
@@ -90,6 +98,14 @@ class CompoundSentence(Sentence):
     def symbol(self):
         pass
 
+    def __cmp__(self, other):
+        for i, sub_sentence in enumerate(self.sub_sentences):
+            other_sentence = other.sub_sentences[i]
+            cmp_sub = cmp(sub_sentence, other_sentence)
+            if cmp_sub != 0:
+                return cmp_sub
+        return 0
+
     def __str__(self):
     	joiner = ' %s ' % self.symbol
     	return joiner.join(map(str, self.sub_sentences))
@@ -105,6 +121,10 @@ class Negation(CompoundSentence):
     def sub_sentences(self):
         return tuple((self._target, ))
 
+    @property
+    def target(self):
+        return self._target
+
     def __str__(self):
         if self._target.has_multiple_sentences:
             return self.symbol + '(' + str(self._target) + ')'
@@ -113,7 +133,7 @@ class Negation(CompoundSentence):
 
     @property
     def symbol(self):
-        return '¬'
+        return '-'
 
 class Conjunction(CompoundSentence):
     def __init__(self, conjunct_1, conjunct_2):
@@ -126,6 +146,17 @@ class Conjunction(CompoundSentence):
     @property
     def sub_sentences(self):
         return tuple((self._conjunct_1, self._conjunct_2))
+
+    @property
+    def conjunct_1(self):
+        return self._conjunct_1
+
+    @property
+    def conjunct_2(self):
+        return self._conjunct_2
+    
+    def __repr__(self):
+        return '%s(%r, %r)' % (self.__class__.__name__, self.conjunct_1, self.conjunct_2)
 
     @property
     def symbol(self):
@@ -145,7 +176,7 @@ class Disjunction(CompoundSentence):
 
     @property
     def symbol(self):
-        return 'v'
+        return '|'
 
 class Implication(CompoundSentence):
     def __init__(self, antecedent, consequent):

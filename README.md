@@ -18,7 +18,3 @@ Running Tests
 -------------
 While the virtual environment is active:
 ``` python ./tests.py ```
-
-Future
-------
-- A lexical parser for plain text input

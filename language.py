@@ -55,6 +55,12 @@ class PropositionalConstant:
     def label(self):
         return self._label
 
+    def __cmp__(self, other):
+        return cmp(self.label, other.label)
+
+    def __hash__(self):
+        return hash(self.label)
+
     def __repr__(self):
         return 'PropositionalConstant(%s)' % self._label
 

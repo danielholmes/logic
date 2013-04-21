@@ -2,6 +2,7 @@ import unittest.main
 from unittest import TestCase
 from language import PropositionalConstant, PropositionalVocabulary, TruthAssignment, InvalidConstantLabelException
 from syntax import *
+from parser import Parser, ParsingError
 from unittest_data_provider import data_provider
 
 class PropositionalConstantTest(TestCase):
@@ -265,6 +266,67 @@ class PropositionalVocabularyTest(TestCase):
         ])
 
         self.assertEquals(expected, vocab.all_assignments)
+
+class ParserTest(TestCase):
+    valid_data_provider = lambda: (
+        (SimpleSentence(PropositionalConstant("a")), "a"),
+        (SimpleSentence(PropositionalConstant("a")), "a   "),
+        (SimpleSentence(PropositionalConstant("a")), "   a"),
+        (SimpleSentence(PropositionalConstant("abc")), "abc"),
+        (SimpleSentence(PropositionalConstant("a78")), "a78"),
+        (SimpleSentence(PropositionalConstant("aBC")), "aBC"),
+        (SimpleSentence(PropositionalConstant("a_78")), "a_78"),
+        (Negation(SimpleSentence(PropositionalConstant("var"))), "-var"),
+        (Conjunction(SimpleSentence(PropositionalConstant("one")), SimpleSentence(PropositionalConstant("two"))), "one^two"),
+        (Disjunction(SimpleSentence(PropositionalConstant("one")), SimpleSentence(PropositionalConstant("two"))), "one|two"),
+        (Equivalence(SimpleSentence(PropositionalConstant("one")), SimpleSentence(PropositionalConstant("two"))), "one<=>two"),
+        (Implication(SimpleSentence(PropositionalConstant("one")), SimpleSentence(PropositionalConstant("two"))), "one=>two"),
+        (Reduction(SimpleSentence(PropositionalConstant("one")), SimpleSentence(PropositionalConstant("two"))), "one<=two"),
+        (SimpleSentence(PropositionalConstant("abc")), "(abc)"),
+        (
+            Conjunction(
+                Conjunction(
+                    SimpleSentence(PropositionalConstant("abc")), 
+                    SimpleSentence(PropositionalConstant("def"))
+                ),
+                SimpleSentence(PropositionalConstant("ghi"))
+            ), 
+            "abc^def^ghi"
+        ),
+        (
+            Conjunction(
+                SimpleSentence(PropositionalConstant("abc")), 
+                Conjunction(
+                    SimpleSentence(PropositionalConstant("def")),
+                    SimpleSentence(PropositionalConstant("ghi"))
+                )
+            ), 
+            "abc^(def^ghi)"
+        )
+    )
+
+    @data_provider(valid_data_provider)
+    def test_valid_expressions(self, expected, string_input):
+        parser = Parser()
+
+        expression = parser(string_input)
+
+        self.assertEquals(expected, expression)
+
+    invalid_data_provider = lambda: (
+        ("A", ),
+        ("123", ),
+        ("a*b", ),
+        ("a b", ),
+        ("(a", )
+    )
+
+    @data_provider(invalid_data_provider)
+    def test_invalid_expressions(self, string_input):
+        parser = Parser()
+
+        with self.assertRaises(ParsingError):
+            parser(string_input)
 
 if __name__ == '__main__':
     unittest.main()
