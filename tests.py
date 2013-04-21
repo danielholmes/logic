@@ -3,6 +3,7 @@ from unittest import TestCase
 from language import PropositionalConstant, PropositionalVocabulary, TruthAssignment, InvalidConstantLabelException
 from syntax import *
 from parser import Parser, ParsingError
+from display import TruthTable
 from unittest_data_provider import data_provider
 from abc import ABCMeta, abstractmethod, abstractproperty
 
@@ -374,6 +375,63 @@ class ParserTest(TestCase):
 
         with self.assertRaises(ParsingError):
             parser(string_input)
+
+class TruthTableTest(TestCase):
+    def test_basic_simple_string(self):
+        vocab = PropositionalVocabulary([PropositionalConstant("a")])
+        table = TruthTable(vocab)
+
+        result = table.simple_string
+
+        self.assertEquals("""+---+
+| a |
++---+
+| 1 |
+| 0 |
++---+""", result)
+
+    def test_larger_simple_string(self):
+        a_constant = PropositionalConstant("a")
+        vocab = PropositionalVocabulary([
+            a_constant,
+            PropositionalConstant("b")
+        ])
+        table = TruthTable(vocab, [Negation(SimpleSentence(a_constant))])
+
+        result = table.simple_string
+
+        self.assertEquals("""+---+---+----+
+| a | b | -a |
++---+---+----+
+| 1 | 1 | 0  |
+| 1 | 0 | 0  |
+| 0 | 1 | 1  |
+| 0 | 0 | 1  |
++---+---+----+""", result)
+
+    def test_basic_matrix(self):
+        vocab = PropositionalVocabulary([PropositionalConstant("a")])
+        table = TruthTable(vocab)
+
+        result = table.matrix
+
+        self.assertEquals([["a", True, False]], result)
+
+    def test_larger_matrix(self):
+        a_constant = PropositionalConstant("a")
+        vocab = PropositionalVocabulary([
+            a_constant,
+            PropositionalConstant("b")
+        ])
+        table = TruthTable(vocab, [Negation(SimpleSentence(a_constant))])
+
+        result = table.matrix
+
+        self.assertEquals([
+            ["a", True, True, False, False],
+            ["b", True, False, True, False],
+            ["-a", False, False, True, True]
+        ], result)
 
 if __name__ == '__main__':
     unittest.main()

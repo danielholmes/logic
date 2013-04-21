@@ -96,8 +96,16 @@ class TruthAssignment:
             raise Exception('Value must be a boolean')
         self._constants_to_value.__setattr__(constant, value)
 
-    def __eq__(self, other):
-        return self._constants_to_value == other.constants_to_value
+    def __cmp__(self, other):
+        keys_cmp = cmp(self.constants_to_value.keys(), other.constants_to_value.keys())
+        if keys_cmp == 0:
+            flip_bool_order = lambda x: not x
+            return cmp(
+                map(flip_bool_order, self.constants_to_value.values()), 
+                map(flip_bool_order, other.constants_to_value.values())
+            )
+        else:
+            return keys_cmp
 
     def __repr__(self):
         return 'TruthAssignment(%r)' % self._constants_to_value
