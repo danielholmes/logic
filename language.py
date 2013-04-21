@@ -62,7 +62,10 @@ class PropositionalConstant:
         return hash(self.label)
 
     def __repr__(self):
-        return 'PropositionalConstant(%s)' % self._label
+        return '%s(%r)' % (self.__class__.__name__, self._label)
+
+    def __str__(self):
+        return self.label
 
 class InvalidConstantLabelException(BaseException):
     pass
@@ -97,7 +100,7 @@ class TruthAssignment:
         return self._constants_to_value == other.constants_to_value
 
     def __repr__(self):
-        return 'TruthAssignment(%s)' % str(self._constants_to_value)
+        return 'TruthAssignment(%r)' % self._constants_to_value
 
     def __hash__(self):
         return hash(frozenset(self._constants_to_value.items()))
