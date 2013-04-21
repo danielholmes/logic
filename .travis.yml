@@ -1,7 +1,6 @@
 language: python
 python:
-  # data provider library currently not compatible with 3.3
-  #- "3.3"
+  - "3.3"
   - "2.7"
 install: pip install -r requirements.txt --use-mirrors
 script:  python tests.py
