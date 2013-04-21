@@ -18,3 +18,7 @@ Running Tests
 -------------
 While the virtual environment is active:
 ``` python ./tests.py ```
+
+Future
+------
+- Add travis build

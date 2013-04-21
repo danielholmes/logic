@@ -4,6 +4,7 @@ from language import PropositionalConstant, PropositionalVocabulary, TruthAssign
 from syntax import *
 from parser import Parser, ParsingError
 from unittest_data_provider import data_provider
+from abc import ABCMeta, abstractmethod, abstractproperty
 
 class PropositionalConstantTest(TestCase):
     valid_labels_data_provider = lambda: (
@@ -75,7 +76,37 @@ class SimpleSentenceTest(TestCase):
 
         self.assertEquals(frozenset((constant, )), sentence.all_constants)
 
-class NegationTest(TestCase):
+class AbstractSentenceTest:
+    __metaclass__ = ABCMeta
+
+    @abstractmethod
+    def create_example_sentence():
+        pass
+
+    def test_get_logical_equivalence_self(self):
+        example = self.create_example_sentence()
+
+        result = example.determine_logical_equivalence(example)
+        bool_result = example.is_logically_equivalent(example)
+        
+        self.assertEquals(True, result.is_equivalent)
+        self.assertEquals(True, bool_result)
+
+    # Unsure if this one should be used, do some more research
+    #def test_get_logical_equivalence_negation_of_self(self):
+    #    example = self.create_example_sentence()
+    #    negation = Negation(example)
+
+    #    result = example.determine_logical_equivalence(negation)
+    #    bool_result = example.is_logically_equivalent(example)
+        
+    #    self.assertEquals(False, result.is_equivalent)
+    #    self.assertEquals(False, bool_result)
+
+class NegationTest(TestCase, AbstractSentenceTest):
+    def create_example_sentence(self):
+        return Negation(SimpleSentence(PropositionalConstant("hello")))
+
     def test_eval_true(self):
         constant = PropositionalConstant("hello")
         negation = Negation(SimpleSentence(constant))
@@ -93,20 +124,6 @@ class NegationTest(TestCase):
         result = negation.eval(assignment)
 
         self.assertEquals(True, result)
-
-    def test_get_logical_equivalence_self(self):
-        constant = PropositionalConstant("hello")
-        negation = Negation(SimpleSentence(constant))
-
-        result = negation.determine_logical_equivalence(negation)
-        bool_result = negation.is_logically_equivalent(negation)
-        
-        expected = LogicalEquivalence(frozenset([
-            TruthAssignment({constant : True}),
-            TruthAssignment({constant : False})
-        ]), frozenset())
-        self.assertEquals(expected, result)
-        self.assertEquals(True, bool_result)
 
     def test_is_logically_equivalent_other_same(self):
         constant = PropositionalConstant("hello")
@@ -142,7 +159,7 @@ class NegationTest(TestCase):
         self.assertEquals(expected, result)
         self.assertEquals(False, bool_result)
 
-class ConjunctionTest(TestCase):
+class ConjunctionTest(TestCase, AbstractSentenceTest):
     values_data_provider = lambda: (
         (True, True, True),
         (False, True, False),
@@ -168,7 +185,13 @@ class ConjunctionTest(TestCase):
 
         self.assertEquals(frozenset((conjunct_1, conjunct_2)), conjunction.all_constants)
 
-class DisjunctionTest(TestCase):
+    def create_example_sentence(self):
+        return Conjunction(
+            SimpleSentence(PropositionalConstant("hello")),
+            SimpleSentence(PropositionalConstant("world"))
+        )
+
+class DisjunctionTest(TestCase, AbstractSentenceTest):
     values_data_provider = lambda: (
         (True, True, True),
         (True, True, False),
@@ -187,7 +210,13 @@ class DisjunctionTest(TestCase):
 
         self.assertEquals(expected, result)
 
-class ImplicationTest(TestCase):
+    def create_example_sentence(self):
+        return Disjunction(
+            SimpleSentence(PropositionalConstant("hello")),
+            SimpleSentence(PropositionalConstant("world"))
+        )
+
+class ImplicationTest(TestCase, AbstractSentenceTest):
     values_data_provider = lambda: (
         (True, True, True),
         (False, True, False),
@@ -206,7 +235,13 @@ class ImplicationTest(TestCase):
 
         self.assertEquals(expected, result)
 
-class ReductionTest(TestCase):
+    def create_example_sentence(self):
+        return Implication(
+            SimpleSentence(PropositionalConstant("hello")),
+            SimpleSentence(PropositionalConstant("world"))
+        )
+
+class ReductionTest(TestCase, AbstractSentenceTest):
     values_data_provider = lambda: (
         (True, True, True),
         (True, True, False),
@@ -225,7 +260,13 @@ class ReductionTest(TestCase):
 
         self.assertEquals(expected, result)
 
-class EquivalenceTest(TestCase):
+    def create_example_sentence(self):
+        return Reduction(
+            SimpleSentence(PropositionalConstant("hello")),
+            SimpleSentence(PropositionalConstant("world"))
+        )
+
+class EquivalenceTest(TestCase, AbstractSentenceTest):
     values_data_provider = lambda: (
         (True, True, True),
         (False, True, False),
@@ -243,6 +284,12 @@ class EquivalenceTest(TestCase):
         result = equivalence.eval(assignment)
 
         self.assertEquals(expected, result)
+
+    def create_example_sentence(self):
+        return Equivalence(
+            SimpleSentence(PropositionalConstant("hello")),
+            SimpleSentence(PropositionalConstant("world"))
+        )
 
 class PropositionalVocabularyTest(TestCase):
     def test_all_assignments_single(self):
