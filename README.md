@@ -43,36 +43,36 @@ from parser import parse
 conjunction = parse("a ^ b")
 complex_expr = parse("d => (a ^ (b | c))")
 
-table = TruthTable.for_sentences([conjunction, complex_expr])
 logically_entails = conjunction.logically_entails(complex_expr)
 logically_equivalent = conjunction.is_logically_equivalent(complex_expr)
+table = TruthTable.for_sentences([conjunction, complex_expr])
 
+print("Conjunction logically entails complex: %s" % logically_entails)
+print("Conjunction is logically equivalent to complex: %s" % logically_equivalent)
 print(table.simple_string)
-print("Conjunction logically entails complex: %s", str(logically_entails))
-print("Conjunction is logically equivalent to complex: %s", str(logically_equivalent))
 ```
 Outputs:
 ```
 Conjunction logically entails complex: True
 Conjunction is logically equivalent to complex: False
-+---+---+---+---+----------------+-------+
-| a | b | c | d | d => a ^ b | c | a ^ b |
-+---+---+---+---+----------------+-------+
-| 1 | 1 | 1 | 1 |        1       |   1   |
-| 1 | 1 | 1 | 0 |        1       |   1   |
-| 1 | 1 | 0 | 1 |        1       |   1   |
-| 1 | 1 | 0 | 0 |        1       |   1   |
-| 1 | 0 | 1 | 1 |        1       |   0   |
-| 1 | 0 | 1 | 0 |        1       |   0   |
-| 1 | 0 | 0 | 1 |        0       |   0   |
-| 1 | 0 | 0 | 0 |        1       |   0   |
-| 0 | 1 | 1 | 1 |        0       |   0   |
-| 0 | 1 | 1 | 0 |        1       |   0   |
-| 0 | 1 | 0 | 1 |        0       |   0   |
-| 0 | 1 | 0 | 0 |        1       |   0   |
-| 0 | 0 | 1 | 1 |        0       |   0   |
-| 0 | 0 | 1 | 0 |        1       |   0   |
-| 0 | 0 | 0 | 1 |        0       |   0   |
-| 0 | 0 | 0 | 0 |        1       |   0   |
-+---+---+---+---+----------------+-------+
++---+---+---+---+-------+----------------+
+| a | b | c | d | a ^ b | d => a ^ b | c |
++---+---+---+---+-------+----------------+
+| 1 | 1 | 1 | 1 |   1   |        1       |
+| 1 | 1 | 1 | 0 |   1   |        1       |
+| 1 | 1 | 0 | 1 |   1   |        1       |
+| 1 | 1 | 0 | 0 |   1   |        1       |
+| 1 | 0 | 1 | 1 |   0   |        1       |
+| 1 | 0 | 1 | 0 |   0   |        1       |
+| 1 | 0 | 0 | 1 |   0   |        0       |
+| 1 | 0 | 0 | 0 |   0   |        1       |
+| 0 | 1 | 1 | 1 |   0   |        0       |
+| 0 | 1 | 1 | 0 |   0   |        1       |
+| 0 | 1 | 0 | 1 |   0   |        0       |
+| 0 | 1 | 0 | 0 |   0   |        1       |
+| 0 | 0 | 1 | 1 |   0   |        0       |
+| 0 | 0 | 1 | 0 |   0   |        1       |
+| 0 | 0 | 0 | 1 |   0   |        0       |
+| 0 | 0 | 0 | 0 |   0   |        1       |
++---+---+---+---+-------+----------------+
 ```

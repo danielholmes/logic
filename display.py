@@ -4,7 +4,7 @@ from math import ceil, floor
 class TruthTable:
     def __init__(self, vocabulary, sentences = []):
         self._vocabulary = vocabulary
-        self._sentences = frozenset(sentences)
+        self._sentences = tuple(sentences)
 
     @property
     def simple_string(self):
