@@ -19,7 +19,8 @@ from parser import parse
 
 conjunction = parse("a^b")
 
-table = TruthTable.from_sentences([conjunction])
+table = TruthTable.for_sentences([conjunction])
+
 print(table.simple_string)
 ```
 Outputs:

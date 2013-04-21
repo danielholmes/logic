@@ -47,7 +47,7 @@ class Sentence:
 
 class SentenceSet(Sentence):
     def __init__(self, sentences):
-        self._sentences = tuple(sentences)
+        self._sentences = frozenset(sentences)
 
     @property
     def sentences(self):

@@ -72,4 +72,5 @@ class TruthTable:
 
     @staticmethod
     def for_sentences(sentences):
-        return TruthTable.for_sentence_set(SentenceSet(sentences))
+        vocab = PropositionalVocabulary(SentenceSet(sentences).all_constants)
+        return TruthTable(vocab, sentences)
