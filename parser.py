@@ -2,6 +2,7 @@
 
 from language import *
 from syntax import *
+from abc import ABCMeta, abstractproperty
 import re
 
 def parse(program):
@@ -15,7 +16,7 @@ class SyntaxError(ParsingError):
     pass
 
 class Parser(object):
-    token_pat = re.compile("\s*(?:([a-z]{1}[a-zA-Z\_0-9]*)|(\-|\^|\||\<\=\>|\=\>|\<\=|\(|\)))")
+    TOKEN_PATTERN = re.compile("\s*(?:([a-z]{1}[a-zA-Z\_0-9]*)|(\-|\^|\||\<\=\>|\=\>|\<\=|\(|\)))")
 
     def __call__(self, program):
         self.stream = self.tokenise(program)
@@ -24,14 +25,14 @@ class Parser(object):
             raise ParsingError("Empty expression")
         return self.expression()
 
-    def expression(self, rbp = 0):
-        t = self.token
+    def expression(self, right_binding_power = 0):
+        current_token = self.token
         self.token = next(self.stream)
-        left = t.nud(self)
-        while rbp < self.token.priority:
-            t = self.token
+        left = current_token.create_prefixed_expression(self)
+        while right_binding_power < self.token.binding_power:
+            current_token = self.token
             self.token = next(self.stream)
-            left = t.led(self, left)
+            left = current_token.create_inside_expression(self, left)
         return left
 
     def advance(self, token_type):
@@ -40,7 +41,7 @@ class Parser(object):
         self.token = next(self.stream)
 
     def tokenise(self, program):
-        for literal_value, operator in Parser.token_pat.findall(program):
+        for literal_value, operator in Parser.TOKEN_PATTERN.findall(program):
             if literal_value:
                 yield ConstantToken(literal_value)
             elif operator == "-":
@@ -63,7 +64,7 @@ class Parser(object):
                 raise SyntaxError("Unknown operator to tokenise %s" % operator)
         yield EndToken()
 
-class TokenPriority(object):
+class TokenBindingPower(object):
     LEVEL_1 = 100
     LEVEL_2 = 80
     LEVEL_3 = 60
@@ -72,74 +73,100 @@ class TokenPriority(object):
     LEVEL_6 = 0
 
 class AbstractToken(object):
-    def nud(self, parser):
+    __metaclass__ = ABCMeta
+
+    def create_prefixed_expression(self, parser):
         raise SyntaxError(
             "Syntax error (%r)." % self
         )
 
-    def led(self, parser, left):
+    def create_inside_expression(self, parser, left):
         raise SyntaxError(
             "Unknown operator (%r)." % self
         )
 
-class LeftParenthesisToken(AbstractToken):
-    priority = TokenPriority.LEVEL_6
+    @abstractproperty
+    def binding_power(self):
+        pass
 
-    def nud(self, parser):
+class LeftParenthesisToken(AbstractToken):
+    @property
+    def binding_power(self):
+        return TokenBindingPower.LEVEL_6
+
+    def create_prefixed_expression(self, parser):
         expr = parser.expression()
         parser.advance(RightParenthesisToken)
         return expr
 
 class RightParenthesisToken(AbstractToken):
-    priority = TokenPriority.LEVEL_6
+    @property
+    def binding_power(self):
+        return TokenBindingPower.LEVEL_6
 
 class ConstantToken(AbstractToken):
-    priority = TokenPriority.LEVEL_1
-
     def __init__(self, value):
         self.value = value
 
-    def nud(self, parser):
+    @property
+    def binding_power(self):
+        return TokenBindingPower.LEVEL_1
+
+    def create_prefixed_expression(self, parser):
         return SimpleSentence(PropositionalConstant(self.value))
 
     def __repr__(self):
         return "%s(%r)" % (self.__class__.__name__, self.value)
 
-class EndToken(AbstractToken):
-    priority = TokenPriority.LEVEL_6
-
 class NegationToken(AbstractToken):
-    priority = TokenPriority.LEVEL_2
+    @property
+    def binding_power(self):
+        return  TokenBindingPower.LEVEL_2
 
-    def nud(self, parser):
-        return Negation(parser.expression(TokenPriority.LEVEL_2))
+    def create_prefixed_expression(self, parser):
+        return Negation(parser.expression(self.binding_power))
 
 class ConjunctionToken(AbstractToken):
-    priority = TokenPriority.LEVEL_3
+    @property
+    def binding_power(self):
+        return  TokenBindingPower.LEVEL_3
 
-    def led(self, parser, left):
-        return Conjunction(left, parser.expression(TokenPriority.LEVEL_3))
+    def create_inside_expression(self, parser, left):
+        return Conjunction(left, parser.expression(self.binding_power))
 
 class DisjunctionToken(AbstractToken):
-    priority = TokenPriority.LEVEL_4
+    @property
+    def binding_power(self):
+        return TokenBindingPower.LEVEL_4
 
-    def led(self, parser, left):
-        return Disjunction(left, parser.expression(TokenPriority.LEVEL_4))
+    def create_inside_expression(self, parser, left):
+        return Disjunction(left, parser.expression(self.binding_power))
 
 class EquivalenceToken(AbstractToken):
-    priority = TokenPriority.LEVEL_5
+    @property
+    def binding_power(self):
+        return TokenBindingPower.LEVEL_5
 
-    def led(self, parser, left):
-        return Equivalence(left, parser.expression(TokenPriority.LEVEL_5))
+    def create_inside_expression(self, parser, left):
+        return Equivalence(left, parser.expression(self.binding_power))
 
 class ImplicationToken(AbstractToken):
-    priority = TokenPriority.LEVEL_5
+    @property
+    def binding_power(self):
+        return TokenBindingPower.LEVEL_5
 
-    def led(self, parser, left):
-        return Implication(left, parser.expression(TokenPriority.LEVEL_5))
+    def create_inside_expression(self, parser, left):
+        return Implication(left, parser.expression(self.binding_power))
 
 class ReductionToken(AbstractToken):
-    priority = TokenPriority.LEVEL_5
+    @property
+    def binding_power(self):
+        return TokenBindingPower.LEVEL_5
 
-    def led(self, parser, left):
-        return Reduction(left, parser.expression(TokenPriority.LEVEL_5))
+    def create_inside_expression(self, parser, left):
+        return Reduction(left, parser.expression(self.binding_power))
+
+class EndToken(AbstractToken):
+    @property
+    def binding_power(self):
+        return  TokenBindingPower.LEVEL_6
