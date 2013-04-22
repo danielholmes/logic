@@ -44,7 +44,7 @@ def create_token(token_type, value, position):
         "equivalence": EquivalenceToken,
         "implication": ImplicationToken,
         "reduction": ReductionToken,
-        "left_parenthesis": ImplicationToken,
+        "left_parenthesis": LeftParenthesisToken,
         "right_parenthesis": RightParenthesisToken
     }
 
