@@ -50,7 +50,7 @@ class PropositionalVocabulary(object):
         return str(sorted(self.constants.keys()))
 
     def __repr__(self):
-        return "%s(%r)" % (self.__class__.__name__, map(repr, self.constants))
+        return "%s(%r)" % (self.__class__.__name__, self.constants)
 
 class PropositionalConstant(object):
     def __init__(self, label):

@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod, abstractproperty
-from language import PropositionalVocabulary
+from logic.language import PropositionalVocabulary
 
 class Sentence(object):
     __metaclass__ = ABCMeta

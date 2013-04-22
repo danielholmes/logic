@@ -1,6 +1,6 @@
-from syntax import SimpleSentence, SentenceSet
-from language import PropositionalVocabulary
 from math import ceil, floor
+from logic.syntax import SimpleSentence, SentenceSet
+from logic.language import PropositionalVocabulary
 
 class TruthTable(object):
     def __init__(self, vocabulary, sentences = []):

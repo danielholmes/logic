@@ -9,13 +9,13 @@ so the implementation and understanding is a work in progress.
 Running Tests
 -------------
 While the virtual environment is active:
-``` python ./tests.py ```
+``` python ./tests ```
 
 Simple Example
 --------------
 ```python
-from display import TruthTable
-from parser import parse
+from logic.display import TruthTable
+from logic.parser import parse
 
 conjunction = parse("a^b")
 
@@ -38,8 +38,8 @@ Outputs:
 More Complex Example
 --------------------
 ```python
-from display import TruthTable
-from parser import parse
+from logic.display import TruthTable
+from logic.parser import parse
 
 conjunction = parse("a ^ b")
 complex_expr = parse("d => (a ^ (b | c))")

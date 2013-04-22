@@ -1,9 +1,9 @@
 # With help from http://effbot.org/zone/simple-top-down-parsing.htm
 
-from language import *
-from syntax import *
 from abc import ABCMeta, abstractproperty
 import re
+from logic.language import *
+from logic.syntax import *
 
 def parse(program):
     parser = Parser()
