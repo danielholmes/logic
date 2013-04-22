@@ -37,7 +37,7 @@ class PropositionalVocabulary(object):
 
     @staticmethod
     def from_constant_names(names):
-        constants = map(PropositionalConstant, names)
+        constants = [PropositionalConstant(n) for n in names]
         return PropositionalVocabulary(constants)
 
     def __add__(self, other):
@@ -47,7 +47,7 @@ class PropositionalVocabulary(object):
         return self.__class__ == other.__class__ and self.constants == other.constants
 
     def __str__(self):
-        return str(sorted(self.constants.keys()))
+        return str([c.label for c in sorted(self.constants)])
 
     def __repr__(self):
         return "%s(%r)" % (self.__class__.__name__, self.constants)
@@ -110,17 +110,6 @@ class TruthAssignment(object):
         combined = self._constants_to_value.copy()
         combined.update(other.constants_to_value)
         return TruthAssignment(combined)
-
-    def __delitem__(self, constant):
-        self._constants_to_value.__delattr__(constant)
-
-    def __getitem__(self, constant):
-        self._constants_to_value.__getattribute__(constant)
-
-    def __setitem__(self, constant, value):
-        if not isinstance(value, bool):
-            raise Exception('Value must be a boolean')
-        self._constants_to_value.__setattr__(constant, value)
 
     def __eq__(self, other):
         return self.__class__ == other.__class__ and self.constants_to_value == other.constants_to_value

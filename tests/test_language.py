@@ -122,3 +122,10 @@ class PropositionalVocabularyTest(TestCase):
         ])
 
         self.assertEqual(expected, vocab.all_assignments)
+
+    def test_str(self):
+        vocab = PropositionalVocabulary.from_constant_names(["a", "b"])
+
+        result = str(vocab)
+
+        self.assertEqual(str(["a", "b"]), result)

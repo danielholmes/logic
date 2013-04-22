@@ -1,9 +1,8 @@
-from math import ceil, floor
 from logic.syntax import SimpleSentence, SentenceSet
 from logic.language import PropositionalVocabulary
 
 class TruthTable(object):
-    def __init__(self, vocabulary, sentences = []):
+    def __init__(self, vocabulary, sentences = tuple()):
         self._vocabulary = vocabulary
         self._sentences = tuple(sentences)
 
@@ -12,7 +11,7 @@ class TruthTable(object):
         display_matrix = self.string_matrix
 
         col_sizes = [
-            max(map(len, display_column))
+            max([len(c) for c in display_column])
             for display_column in display_matrix
         ]
 
@@ -25,7 +24,7 @@ class TruthTable(object):
         for row_num in range(0, num_rows):
             row_values = [display_column[row_num] for display_column in display_matrix]
             row_values_and_sizes = zip(row_values, col_sizes)
-            padded_row_values = map(lambda x: x[0].center(x[1], " "), row_values_and_sizes)
+            padded_row_values = [x[0].center(x[1], " ") for x in row_values_and_sizes]
             rows.append("| " + " | ".join(padded_row_values) + " |")
             if row_num == 0:
                 rows.append(row_divider)
@@ -50,7 +49,7 @@ class TruthTable(object):
 
     @property
     def matrix(self):
-        constant_sentences = map(SimpleSentence, self._vocabulary.constants)
+        constant_sentences = [SimpleSentence(c) for c in self._vocabulary.constants]
         all_sentences = sorted(constant_sentences) + list(self._sentences)
         table = [""] * len(all_sentences)
 

@@ -1,4 +1,4 @@
-from abc import ABCMeta, abstractmethod, abstractproperty
+from abc import ABCMeta, abstractmethod
 from logic.language import PropositionalVocabulary
 
 class Sentence(object):
@@ -32,7 +32,6 @@ class Sentence(object):
 
     def logically_entails(self, other):
         all_vocab = self.vocabulary + other.vocabulary
-        assignments = all_vocab.all_assignments
         true_assignments = [assignment for assignment in all_vocab.all_assignments if self.eval(assignment)]
         other_results = [other.eval(assignment) for assignment in true_assignments]
         return all(other_results)
@@ -58,7 +57,7 @@ class SentenceSet(Sentence):
         return self._sentences
 
     def eval(self, assignment):
-        evals = map(lambda x: x.eval(assignment), self._sentences)
+        evals = [s.eval(assignment) for s in self._sentences]
         return all(evals)
 
 class SimpleSentence(Sentence):
@@ -152,10 +151,10 @@ class CompoundSentence(Sentence):
 
     def __str__(self):
         joiner = ' %s ' % self.symbol
-        return "(" + joiner.join(map(str, self.sub_sentences)) + ")"
+        return "(" + joiner.join([str(s) for s in self.sub_sentences]) + ")"
 
     def __repr__(self):
-        return '%s(%s)' % (self.__class__.__name__, ", ".join(map(repr, self.sub_sentences)))
+        return '%s(%s)' % (self.__class__.__name__, ", ".join([repr(s) for s in self.sub_sentences]))
 
 class Negation(CompoundSentence):
     def __init__(self, target):

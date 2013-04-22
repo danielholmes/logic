@@ -12,33 +12,43 @@ def parse(program):
 class ParsingError(Exception):
     pass
 
-class SyntaxError(ParsingError):
+class ParsingSyntaxError(ParsingError):
     pass
 
 class Parser(object):
     TOKEN_PATTERN = re.compile("\s*(?:([a-z]{1}[a-zA-Z\_0-9]*)|(\-|\^|\||\<\=\>|\=\>|\<\=|\(|\)))")
 
     def __call__(self, program):
-        self.stream = self.tokenise(program)
-        self.token = next(self.stream)
-        if self.token.__class__ == EndToken:
+        stream = self.tokenise(program)
+        initial_state = ParseState(stream)
+        if initial_state.token.__class__ == EndToken:
             raise ParsingError("Empty expression")
-        return self.expression()
 
-    def expression(self, right_binding_power = 0):
-        current_token = self.token
-        self.token = next(self.stream)
-        left = current_token.create_prefixed_expression(self)
-        while right_binding_power < self.token.binding_power:
-            current_token = self.token
-            self.token = next(self.stream)
-            left = current_token.create_inside_expression(self, left)
+        return self.expression(initial_state)
+
+    def expression(self, previous_state, right_binding_power = 0):
+        current_state = previous_state.next()
+
+        # TODO: Remove
+        self.state = current_state
+
+        left = previous_state.token.create_prefixed_expression(self, current_state)
+        while right_binding_power < self.state.binding_power:
+            previous_token = self.state.token
+
+            current_state = previous_state.next(left)
+
+            # TODO: Remove
+            self.state = current_state
+
+            left = previous_token.create_inside_expression(self, current_state)
+
         return left
 
-    def advance(self, token_type):
-        if self.token.__class__ != token_type:
-            raise SyntaxError("Expected %r" % token_type.__name__)
-        self.token = next(self.stream)
+    def advance(self, state, token_type):
+        if self.state.token.__class__ != token_type:
+            raise ParsingSyntaxError("Expected %r" % token_type.__name__)
+        self.state = state.next()
 
     def tokenise(self, program):
         for literal_value, operator in Parser.TOKEN_PATTERN.findall(program):
@@ -61,8 +71,33 @@ class Parser(object):
             elif operator == ")":
                 yield RightParenthesisToken()
             else:
-                raise SyntaxError("Unknown operator to tokenise %s" % operator)
+                raise ParsingSyntaxError("Unknown operator to tokenise %s" % operator)
         yield EndToken()
+
+class ParseState(object):
+    def __init__(self, stream, left = None):
+        self._token = next(stream)
+        self._stream = stream
+        self._left = left
+
+    @property
+    def token(self):
+        return self._token
+
+    @property
+    def binding_power(self):
+        return self.token.binding_power
+
+    @property
+    def left(self):
+        return self._left
+
+    @property
+    def stream(self):
+        return self._stream
+
+    def next(self, left = None):
+        return ParseState(self._stream, left)
 
 class TokenBindingPower(object):
     LEVEL_1 = 100
@@ -75,13 +110,13 @@ class TokenBindingPower(object):
 class AbstractToken(object):
     __metaclass__ = ABCMeta
 
-    def create_prefixed_expression(self, parser):
-        raise SyntaxError(
+    def create_prefixed_expression(self, parser, state):
+        raise ParsingSyntaxError(
             "Syntax error (%r)." % self
         )
 
-    def create_inside_expression(self, parser, left):
-        raise SyntaxError(
+    def create_inside_expression(self, parser, state):
+        raise ParsingSyntaxError(
             "Unknown operator (%r)." % self
         )
 
@@ -94,9 +129,9 @@ class LeftParenthesisToken(AbstractToken):
     def binding_power(self):
         return TokenBindingPower.LEVEL_6
 
-    def create_prefixed_expression(self, parser):
-        expr = parser.expression()
-        parser.advance(RightParenthesisToken)
+    def create_prefixed_expression(self, parser, state):
+        expr = parser.expression(state)
+        parser.advance(state, RightParenthesisToken)
         return expr
 
 class RightParenthesisToken(AbstractToken):
@@ -112,7 +147,7 @@ class ConstantToken(AbstractToken):
     def binding_power(self):
         return TokenBindingPower.LEVEL_1
 
-    def create_prefixed_expression(self, parser):
+    def create_prefixed_expression(self, parser, state):
         return SimpleSentence(PropositionalConstant(self.value))
 
     def __repr__(self):
@@ -123,48 +158,48 @@ class NegationToken(AbstractToken):
     def binding_power(self):
         return  TokenBindingPower.LEVEL_2
 
-    def create_prefixed_expression(self, parser):
-        return Negation(parser.expression(self.binding_power))
+    def create_prefixed_expression(self, parser, state):
+        return Negation(parser.expression(state, self.binding_power))
 
 class ConjunctionToken(AbstractToken):
     @property
     def binding_power(self):
         return  TokenBindingPower.LEVEL_3
 
-    def create_inside_expression(self, parser, left):
-        return Conjunction(left, parser.expression(self.binding_power))
+    def create_inside_expression(self, parser, state):
+        return Conjunction(state.left, parser.expression(state, self.binding_power))
 
 class DisjunctionToken(AbstractToken):
     @property
     def binding_power(self):
         return TokenBindingPower.LEVEL_4
 
-    def create_inside_expression(self, parser, left):
-        return Disjunction(left, parser.expression(self.binding_power))
+    def create_inside_expression(self, parser, state):
+        return Disjunction(state.left, parser.expression(state, self.binding_power))
 
 class EquivalenceToken(AbstractToken):
     @property
     def binding_power(self):
         return TokenBindingPower.LEVEL_5
 
-    def create_inside_expression(self, parser, left):
-        return Equivalence(left, parser.expression(self.binding_power))
+    def create_inside_expression(self, parser, state):
+        return Equivalence(state.left, parser.expression(state, self.binding_power))
 
 class ImplicationToken(AbstractToken):
     @property
     def binding_power(self):
         return TokenBindingPower.LEVEL_5
 
-    def create_inside_expression(self, parser, left):
-        return Implication(left, parser.expression(self.binding_power))
+    def create_inside_expression(self, parser, state):
+        return Implication(state.left, parser.expression(state, self.binding_power))
 
 class ReductionToken(AbstractToken):
     @property
     def binding_power(self):
         return TokenBindingPower.LEVEL_5
 
-    def create_inside_expression(self, parser, left):
-        return Reduction(left, parser.expression(self.binding_power))
+    def create_inside_expression(self, parser, state):
+        return Reduction(state.left, parser.expression(state, self.binding_power))
 
 class EndToken(AbstractToken):
     @property
