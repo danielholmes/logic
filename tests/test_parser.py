@@ -4,22 +4,76 @@ from logic.syntax import *
 from logic.language import *
 from logic.parser import *
 
-class ParserTest(TestCase):
+class TokeniseTest(TestCase):
     valid_data_provider = lambda: (
-        (SimpleSentence(PropositionalConstant("a")), "a"),
-        (SimpleSentence(PropositionalConstant("a")), "a   "),
-        (SimpleSentence(PropositionalConstant("a")), "   a"),
-        (SimpleSentence(PropositionalConstant("abc")), "abc"),
-        (SimpleSentence(PropositionalConstant("a78")), "a78"),
-        (SimpleSentence(PropositionalConstant("aBC")), "aBC"),
-        (SimpleSentence(PropositionalConstant("a_78")), "a_78"),
-        (Negation(SimpleSentence(PropositionalConstant("var"))), "-var"),
-        (Conjunction(SimpleSentence(PropositionalConstant("one")), SimpleSentence(PropositionalConstant("two"))), "one^two"),
-        (Disjunction(SimpleSentence(PropositionalConstant("one")), SimpleSentence(PropositionalConstant("two"))), "one|two"),
-        (Equivalence(SimpleSentence(PropositionalConstant("one")), SimpleSentence(PropositionalConstant("two"))), "one<=>two"),
-        (Implication(SimpleSentence(PropositionalConstant("one")), SimpleSentence(PropositionalConstant("two"))), "one=>two"),
-        (Reduction(SimpleSentence(PropositionalConstant("one")), SimpleSentence(PropositionalConstant("two"))), "one<=two"),
-        (SimpleSentence(PropositionalConstant("abc")), "(abc)"),
+        ((ConstantToken("a"), EndToken()), "a"),
+        ((ConstantToken("a_b"), EndToken()), "a_b"),
+        ((NegationToken(), EndToken()), "-"),
+        ((ConjunctionToken(), EndToken()), "^"),
+        ((DisjunctionToken(), EndToken()), "|"),
+        ((EquivalenceToken(), EndToken()), "<=>"),
+        ((ImplicationToken(), EndToken()), "=>"),
+        ((ReductionToken(), EndToken()), "<="),
+        ((LeftParenthesisToken(), EndToken()), "("),
+        ((RightParenthesisToken(), EndToken()), ")"),
+        (
+            (
+                LeftParenthesisToken(),
+                ConstantToken("a"),
+                ConjunctionToken(),
+                ConstantToken("b"),
+                RightParenthesisToken(),
+                EndToken()
+            ),
+            "(a ^ b)"
+        ),
+        ((ConstantToken("a"), EndToken()), "  \ta\n  ")
+    )
+
+    @data_provider(valid_data_provider)
+    def test_tokenise(self, expected, program):
+        result = tokenise(program)
+
+        self.assertEqual(expected, result)
+
+    invalid_data_provider = lambda: (
+        ("&", ),
+        ("   &   ", ),
+        ("UpperConstant", ),
+        ("4numConstant", ),
+        ("123", )
+    )
+
+    @data_provider(invalid_data_provider)
+    def test_tokenise_invalid(self, program):
+        with self.assertRaises(TokenisationError):
+            tokenise(program)
+
+class ParseProgramTest(TestCase):
+    valid_data_provider = lambda: (
+        (SimpleSentence(PropositionalConstant("a")), tokenise("a")),
+        (Negation(SimpleSentence(PropositionalConstant("var"))), tokenise("-var")),
+        (
+            Conjunction(SimpleSentence(PropositionalConstant("one")), SimpleSentence(PropositionalConstant("two"))), 
+            tokenise("one^two")
+        ),
+        (
+            Disjunction(SimpleSentence(PropositionalConstant("one")), SimpleSentence(PropositionalConstant("two"))), 
+            tokenise("one|two")
+        ),
+        (
+            Equivalence(SimpleSentence(PropositionalConstant("one")), SimpleSentence(PropositionalConstant("two"))), 
+            tokenise("one<=>two")
+        ),
+        (
+            Implication(SimpleSentence(PropositionalConstant("one")), SimpleSentence(PropositionalConstant("two"))), 
+            tokenise("one=>two")
+        ),
+        (
+            Reduction(SimpleSentence(PropositionalConstant("one")), SimpleSentence(PropositionalConstant("two"))), 
+            tokenise("one<=two")
+        ),
+        (SimpleSentence(PropositionalConstant("abc")), tokenise("(abc)")),
         (
             Conjunction(
                 Conjunction(
@@ -28,7 +82,7 @@ class ParserTest(TestCase):
                 ),
                 SimpleSentence(PropositionalConstant("ghi"))
             ), 
-            "abc^def^ghi"
+            tokenise("abc^def^ghi")
         ),
         (
             Conjunction(
@@ -38,7 +92,7 @@ class ParserTest(TestCase):
                     SimpleSentence(PropositionalConstant("ghi"))
                 )
             ), 
-            "abc^(def^ghi)"
+            tokenise("abc^(def^ghi)")
         ),
         (
             Equivalence(
@@ -51,29 +105,12 @@ class ParserTest(TestCase):
                     )
                 )
             ),
-            "a <=> b | c ^ -d"
+            tokenise("a <=> b | c ^ -d")
         )
     )
 
     @data_provider(valid_data_provider)
-    def test_valid_expressions(self, expected, string_input):
-        parser = Parser()
-
-        expression = parser(string_input)
+    def test_valid_expressions(self, expected, tokens):
+        expression = parse_program(tokens)
 
         self.assertEqual(expected, expression)
-
-    invalid_data_provider = lambda: (
-        ("A", ),
-        ("123", ),
-        ("a*b", ),
-        ("a b", ),
-        ("(a", )
-    )
-
-    @data_provider(invalid_data_provider)
-    def test_invalid_expressions(self, string_input):
-        parser = Parser()
-
-        with self.assertRaises(ParsingError):
-            parser(string_input)

@@ -2,25 +2,68 @@
 
 from abc import ABCMeta, abstractproperty
 import re
+from collections import OrderedDict
 from logic.language import *
 from logic.syntax import *
 
-def parse(program):
+def parse(text):
+    return parse_program(tokenise(text))
+
+def parse_program(tokens):
     parser = Parser()
-    return parser(program)
+    return parser(tokens)
 
-class ParsingError(Exception):
-    pass
+def tokenise(text):
+    token_pattern = r"""
+(?P<constant>[a-z]{1}[a-zA-Z0-9\_]*)
+|(?P<negation>\-{1})
+|(?P<conjunction>\^{1})
+|(?P<disjunction>\|{1})
+|(?P<equivalence>\<\=\>{1})
+|(?P<implication>\=\>{1})
+|(?P<reduction>\<\={1})
+|(?P<left_parenthesis>\({1})
+|(?P<right_parenthesis>\){1})
+|(?P<invalid>[^\s]+)
+"""
 
-class ParsingSyntaxError(ParsingError):
-    pass
+    token_re = re.compile(token_pattern, re.VERBOSE)
+    return tuple([
+        create_token(m.lastgroup, m.group(m.lastgroup), m.start(m.lastgroup))
+        for m in re.finditer(token_pattern, text, re.VERBOSE)
+    ] + [EndToken()])
+
+def create_token(token_type, value, position):
+    if token_type == 'constant':
+        return ConstantToken(value)
+    elif token_type == 'negation':
+        return NegationToken()
+    elif token_type == 'conjunction':
+        return ConjunctionToken()
+    elif token_type == 'disjunction':
+        return DisjunctionToken()
+    elif token_type == 'equivalence':
+        return EquivalenceToken()
+    elif token_type == 'implication':
+        return ImplicationToken()
+    elif token_type == 'reduction':
+        return ReductionToken()
+    elif token_type == 'left_parenthesis':
+        return LeftParenthesisToken()
+    elif token_type == 'right_parenthesis':
+        return RightParenthesisToken()
+    else:
+        raise TokenisationError("Unrecognised token: %s > %r at position %s" % (token_type, value, position))
+
+class ParsingError(Exception): pass
+
+class TokenisationError(ParsingError): pass
+
+class ParsingSyntaxError(ParsingError): pass
 
 class Parser(object):
-    TOKEN_PATTERN = re.compile("\s*(?:([a-z]{1}[a-zA-Z\_0-9]*)|(\-|\^|\||\<\=\>|\=\>|\<\=|\(|\)))")
-
-    def __call__(self, program):
-        raw_tokens = Parser.TOKEN_PATTERN.findall(program)
-        initial_state = ParseState(raw_tokens)
+    def __call__(self, tokens):
+        initial_state = ParseState(tokens)
         if initial_state.is_end:
             raise ParsingError("Empty expression")
 
@@ -50,36 +93,8 @@ class Parser(object):
 class ParseState(object):
     def __init__(self, tokens, left = None):
         self._left = left
+        self._token = tokens[0]
         self._remaining_tokens = tokens[1:]
-
-        parsed_token = None
-        if len(tokens) == 0:
-            self._token = EndToken()
-        else:
-            self._token = self.create_token(tokens[0])
-
-    def create_token(self, raw_token):
-        literal_value, operator = raw_token
-        if literal_value:
-            return ConstantToken(literal_value)
-        elif operator == "-":
-            return NegationToken()
-        elif operator == "^":
-            return ConjunctionToken()
-        elif operator == "|":
-            return DisjunctionToken()
-        elif operator == "<=>":
-            return EquivalenceToken()
-        elif operator == "=>":
-            return ImplicationToken()
-        elif operator == "<=":
-            return ReductionToken()
-        elif operator == "(":
-            return LeftParenthesisToken()
-        elif operator == ")":
-            return RightParenthesisToken()
-        else:
-            raise ParsingSyntaxError("Unknown operator to tokenise %s" % operator)
 
     @property
     def token(self):
@@ -101,7 +116,12 @@ class ParseState(object):
         return self._left
 
     def next(self, left = None):
-        return ParseState(self._remaining_tokens, left)
+        if len(self._remaining_tokens) == 0:
+            # A massive hack, to be removed when parsing sorted out
+            # raise ParsingSyntaxError("No more tokens")
+            return ParseState(tuple([EndToken()]), left)
+        else:
+            return ParseState(self._remaining_tokens, left)
 
     def __repr__(self):
         return "%s(%r, %r, %r)" % (self.__class__.__name__, self._token, self._remaining_tokens, self.left)
@@ -184,7 +204,7 @@ class ConstantToken(AbstractToken):
         return state.next(SimpleSentence(PropositionalConstant(self.value)))
 
     def __eq__(self, other):
-        return super.__eq__(self, other) and self.value == other.value
+        return super(self.__class__, self).__eq__(other) and self.value == other.value
 
     def __repr__(self):
         return "%s(%r)" % (self.__class__.__name__, self.value)
