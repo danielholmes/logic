@@ -1,17 +1,22 @@
-# With help from http://effbot.org/zone/simple-top-down-parsing.htm
+# Main help from http://www.engr.mun.ca/~theo/Misc/exp_parsing.htm
+# also see http://effbot.org/zone/simple-top-down-parsing.htm
 
-from abc import ABCMeta, abstractproperty
+from abc import ABCMeta, abstractproperty, abstractmethod
 import re
-from collections import OrderedDict
-from logic.language import *
-from logic.syntax import *
+from logic.language import PropositionalConstant
+from logic.syntax import SimpleSentence, Negation, Conjunction, Disjunction, \
+    Equivalence, Implication, Reduction
 
 def parse(text):
     return parse_program(tokenise(text))
 
 def parse_program(tokens):
-    parser = Parser()
-    return parser(tokens)
+    initial_state = ParseState(tokens, [SentinelToken()], [])
+    if initial_state.next_token == EndToken():
+        raise ParsingError("Empty expression")
+    expression_state = expression(initial_state)
+    completed_state = expect(expression_state, EndToken()) 
+    return completed_state.next_operand
 
 def tokenise(text):
     token_pattern = r"""
@@ -26,105 +31,146 @@ def tokenise(text):
 |(?P<right_parenthesis>\){1})
 |(?P<invalid>[^\s]+)
 """
-
-    token_re = re.compile(token_pattern, re.VERBOSE)
     return tuple([
         create_token(m.lastgroup, m.group(m.lastgroup), m.start(m.lastgroup))
         for m in re.finditer(token_pattern, text, re.VERBOSE)
     ] + [EndToken()])
 
 def create_token(token_type, value, position):
-    if token_type == 'constant':
+    simple_type_map = {
+        "negation": NegationToken,
+        "conjunction": ConjunctionToken,
+        "disjunction": DisjunctionToken,
+        "equivalence": EquivalenceToken,
+        "implication": ImplicationToken,
+        "reduction": ReductionToken,
+        "left_parenthesis": ImplicationToken,
+        "right_parenthesis": RightParenthesisToken
+    }
+
+    constructor = simple_type_map.get(token_type)
+    if constructor is not None:
+        return constructor()
+    elif token_type == 'constant':
         return ConstantToken(value)
-    elif token_type == 'negation':
-        return NegationToken()
-    elif token_type == 'conjunction':
-        return ConjunctionToken()
-    elif token_type == 'disjunction':
-        return DisjunctionToken()
-    elif token_type == 'equivalence':
-        return EquivalenceToken()
-    elif token_type == 'implication':
-        return ImplicationToken()
-    elif token_type == 'reduction':
-        return ReductionToken()
-    elif token_type == 'left_parenthesis':
-        return LeftParenthesisToken()
-    elif token_type == 'right_parenthesis':
-        return RightParenthesisToken()
     else:
-        raise TokenisationError("Unrecognised token: %s > %r at position %s" % (token_type, value, position))
+        raise TokenisationError(
+            "Unrecognised token: %s > %r at position %s" % 
+            (token_type, value, position)
+        )
 
-class ParsingError(Exception): pass
+class ParsingError(Exception):
+    pass
 
-class TokenisationError(ParsingError): pass
+class TokenisationError(ParsingError):
+    pass
 
-class ParsingSyntaxError(ParsingError): pass
-
-class Parser(object):
-    def __call__(self, tokens):
-        initial_state = ParseState(tokens)
-        if initial_state.is_end:
-            raise ParsingError("Empty expression")
-
-        return self.expression(initial_state)
-
-    def expression(self, previous_state, right_binding_power = 0):
-        current_state = previous_state.next()
-
-        # TODO: Remove
-        self.state = current_state
-
-        prefixed_state = previous_state.token.create_prefixed_expression(self, current_state)
-        left = prefixed_state.left
-
-        while right_binding_power < self.state.binding_power:
-            previous_state = self.state
-
-            current_state = previous_state.next(left)
-
-            # TODO: Remove
-            self.state = current_state
-
-            left = previous_state.token.create_inside_expression(self, current_state)
-
-        return left
+class ParsingSyntaxError(ParsingError):
+    pass
 
 class ParseState(object):
-    def __init__(self, tokens, left = None):
-        self._left = left
-        self._token = tokens[0]
-        self._remaining_tokens = tokens[1:]
+    def __init__(self, tokens, operators, operands):
+        self._tokens = tuple(tokens)
+        self._operators = tuple(operators)
+        self._operands = tuple(operands)
 
     @property
-    def token(self):
-        return self._token
-
-    def has_token_type(self, token_type):
-        return self._token.__class__ == token_type
+    def next_token(self):
+        assert len(self._tokens) > 0, "No tokens left"
+        return self._tokens[0]
 
     @property
-    def is_end(self):
-        return self.has_token_type(EndToken)
+    def next_operand(self):
+        assert len(self._operands) > 0, "No operands left"
+        return self._operands[0]
 
     @property
-    def binding_power(self):
-        return self._token.binding_power
+    def next_operator(self):
+        assert len(self._operators) > 0, "No operators left"
+        return self._operators[0]
 
-    @property
-    def left(self):
-        return self._left
+    def next_operands(self, amount):
+        return tuple(self._operands)[:amount]
 
-    def next(self, left = None):
-        if len(self._remaining_tokens) == 0:
-            # A massive hack, to be removed when parsing sorted out
-            # raise ParsingSyntaxError("No more tokens")
-            return ParseState(tuple([EndToken()]), left)
+    def pop_operand(self):
+        return self.pop_operands(1)
+
+    def pop_operands(self, amount):
+        new_operands = self._operands[amount:]
+        return ParseState(self._tokens, self._operators, new_operands)
+
+    def pop_operator(self):
+        return ParseState(self._tokens, self._operators[1:], self._operands)
+
+    def push_operator(self, operator):
+        new_operators = (operator, ) + self._operators
+        return ParseState(self._tokens, new_operators, self._operands)
+
+    def push_operand(self, operand):
+        new_operands = (operand, ) + self._operands
+        return ParseState(self._tokens, self._operators, new_operands)
+
+    def consume_token(self):
+        return ParseState(self._tokens[1:], self._operators, self._operands)
+
+def expression(state):
+    state = progress(state)
+    while state.next_token.is_binary:
+        state = push_operator(state.next_token, state)
+        state = progress(state.consume_token())
+
+    more_tokens = True
+    while more_tokens:
+        if state.next_operator == SentinelToken():
+            more_tokens = False
         else:
-            return ParseState(self._remaining_tokens, left)
+            state = pop_operator(state)
 
-    def __repr__(self):
-        return "%s(%r, %r, %r)" % (self.__class__.__name__, self._token, self._remaining_tokens, self.left)
+    return state
+
+def progress(state):
+    if "create_value_sentence" in dir(state.next_token):
+        state = state.push_operand(state.next_token.create_value_sentence())
+        state = state.consume_token()
+    elif state.next_token == LeftParenthesisToken():
+        state = state.consume_token()
+        state = state.push_operator(SentinelToken())
+        state = expression(state)
+        state = expect(state, RightParenthesisToken())
+        state = state.pop_operator()
+    elif state.next_token.is_unary:
+        state = push_operator(state.next_token, state)
+        state = state.consume_token()
+        state = progress(state)
+    else:
+        raise Exception("Parsing issue with token %r" % state.next_token)
+
+    return state
+
+def expect(state, token):
+    if state.next_token != token:
+        raise Exception("Expected %r got %r" % (token, state.next_token))
+    return state.consume_token()
+
+def pop_operator(state):
+    operator = state.next_operator
+    state = state.pop_operator()
+    if operator.is_binary:
+        right, left = state.next_operands(2)
+        state = state.pop_operands(2)
+        state = state.push_operand(operator.create_binary_sentence(left, right))
+    elif operator.is_unary:
+        next_operand = state.next_operand
+        state = state.pop_operand()
+        state = state.push_operand(operator.create_unary_sentence(next_operand))
+    else:
+        raise Exception("Request a pop of a non-operator %r" % operator)
+    return state
+
+def push_operator(operator, state):
+    while state.next_operator.binding_power >= operator.binding_power:
+        state = pop_operator(state)
+    return state.push_operator(operator)
 
 class TokenBindingPower(object):
     LEVEL_1 = 100
@@ -133,49 +179,42 @@ class TokenBindingPower(object):
     LEVEL_4 = 40
     LEVEL_5 = 20
     LEVEL_6 = 0
+    LEVEL_LOWEST = -9999
 
 class AbstractToken(object):
     __metaclass__ = ABCMeta
-
-    def create_prefixed_expression(self, parser, state):
-        raise ParsingSyntaxError(
-            "Syntax error (%r)." % self
-        )
-
-    def create_inside_expression(self, parser, state):
-        raise ParsingSyntaxError(
-            "Unknown operator (%r)." % self
-        )
 
     @abstractproperty
     def binding_power(self):
         pass
 
+    @property
+    def is_binary(self):
+        return False
+
+    @property
+    def is_unary(self):
+        return False
+
     def __repr__(self):
         return "%s()" % self.__class__.__name__
 
     def __eq__(self, other):
-        return self.__class__ == other.__class__
+        return (isinstance(other, self.__class__)
+            and self.__dict__ == other.__dict__)
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+class SentinelToken(AbstractToken):
+    @property
+    def binding_power(self):
+        return TokenBindingPower.LEVEL_LOWEST
 
 class LeftParenthesisToken(AbstractToken):
     @property
     def binding_power(self):
         return TokenBindingPower.LEVEL_6
-
-    def create_prefixed_expression(self, parser, state):
-        expr = parser.expression(state)
-        if not parser.state.has_token_type(RightParenthesisToken):
-            raise ParsingSyntaxError("Expected %s" % RightParenthesisToken.__name__)
-        
-        # NOTE: parser.expression could do all sorts of parser.state transformations, 
-        # so using state argument from above is really unreliable
-        # TODO: Should be returning this state
-        parser.state = parser.state.next()
-        #print("\nLEFTR")
-        #print(parser.state)
-        #print(state.next().next(expr))
-
-        return state.next(expr)
 
     def __str__(self):
         return "("
@@ -196,72 +235,80 @@ class ConstantToken(AbstractToken):
     def binding_power(self):
         return TokenBindingPower.LEVEL_1
 
-    @property
-    def value(self):
-        return self._value
-
-    def create_prefixed_expression(self, parser, state):
-        return state.next(SimpleSentence(PropositionalConstant(self.value)))
-
-    def __eq__(self, other):
-        return super(self.__class__, self).__eq__(other) and self.value == other.value
+    def create_value_sentence(self):
+        return SimpleSentence(PropositionalConstant(self._value))
 
     def __repr__(self):
-        return "%s(%r)" % (self.__class__.__name__, self.value)
+        return "%s(%r)" % (self.__class__.__name__, self._value)
 
 class NegationToken(AbstractToken):
     @property
     def binding_power(self):
         return  TokenBindingPower.LEVEL_2
 
-    def create_prefixed_expression(self, parser, state):
-        return state.next(Negation(parser.expression(state, self.binding_power)))
+    def create_unary_sentence(self, target):
+        return Negation(target)
 
-class ConjunctionToken(AbstractToken):
+    @property
+    def is_unary(self):
+        return True
+
+class BinaryOperationToken(AbstractToken):
+    __metaclass__ = ABCMeta
+
+    @abstractmethod
+    def create_binary_sentence(self, left, right):
+        pass
+
+    @property
+    def is_binary(self):
+        return True
+
+class ConjunctionToken(BinaryOperationToken):
     @property
     def binding_power(self):
         return  TokenBindingPower.LEVEL_3
 
-    def create_inside_expression(self, parser, state):
-        return Conjunction(state.left, parser.expression(state, self.binding_power))
+    def create_binary_sentence(self, left, right):
+        return Conjunction(left, right)
 
-class DisjunctionToken(AbstractToken):
+class DisjunctionToken(BinaryOperationToken):
     @property
     def binding_power(self):
         return TokenBindingPower.LEVEL_4
 
-    def create_inside_expression(self, parser, state):
-        return Disjunction(state.left, parser.expression(state, self.binding_power))
+    def create_binary_sentence(self, left, right):
+        return Disjunction(left, right)
 
-class EquivalenceToken(AbstractToken):
+class EquivalenceToken(BinaryOperationToken):
     @property
     def binding_power(self):
         return TokenBindingPower.LEVEL_5
 
-    def create_inside_expression(self, parser, state):
-        return Equivalence(state.left, parser.expression(state, self.binding_power))
+    def create_binary_sentence(self, left, right):
+        return Equivalence(left, right)
 
     def __str__(self):
         return "<=>"
 
-class ImplicationToken(AbstractToken):
+class ImplicationToken(BinaryOperationToken):
     @property
     def binding_power(self):
         return TokenBindingPower.LEVEL_5
 
-    def create_inside_expression(self, parser, state):
-        return Implication(state.left, parser.expression(state, self.binding_power))
+    def create_binary_sentence(self, left, right):
+        return Implication(left, right)
 
     def __str__(self):
         return "=>"
 
-class ReductionToken(AbstractToken):
+class ReductionToken(BinaryOperationToken):
     @property
     def binding_power(self):
         return TokenBindingPower.LEVEL_5
 
-    def create_inside_expression(self, parser, state):
-        return Reduction(state.left, parser.expression(state, self.binding_power))
+    def create_binary_sentence(self, left, right):
+        return Reduction(left, right)
 
     def __str__(self):
         return "<="

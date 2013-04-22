@@ -112,7 +112,8 @@ class TruthAssignment(object):
         return TruthAssignment(combined)
 
     def __eq__(self, other):
-        return self.__class__ == other.__class__ and self.constants_to_value == other.constants_to_value
+        return (isinstance(other, self.__class__)
+            and self.constants_to_value == other.constants_to_value)
 
     def __gt__(self, other):
         keys = sorted(self.constants)

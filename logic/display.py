@@ -22,9 +22,15 @@ class TruthTable(object):
         rows = [row_divider]
         num_rows = len(display_matrix[0])
         for row_num in range(0, num_rows):
-            row_values = [display_column[row_num] for display_column in display_matrix]
+            row_values = [
+                display_column[row_num] 
+                for display_column in display_matrix
+            ]
             row_values_and_sizes = zip(row_values, col_sizes)
-            padded_row_values = [x[0].center(x[1], " ") for x in row_values_and_sizes]
+            padded_row_values = [
+                x[0].center(x[1], " ") 
+                for x in row_values_and_sizes
+            ]
             rows.append("| " + " | ".join(padded_row_values) + " |")
             if row_num == 0:
                 rows.append(row_divider)
@@ -49,13 +55,19 @@ class TruthTable(object):
 
     @property
     def matrix(self):
-        constant_sentences = [SimpleSentence(c) for c in self._vocabulary.constants]
+        constant_sentences = [
+            SimpleSentence(c) 
+            for c in self._vocabulary.constants
+        ]
         all_sentences = sorted(constant_sentences) + list(self._sentences)
         table = [""] * len(all_sentences)
 
         sorted_assignments = sorted(self._vocabulary.all_assignments)
         for index, sentence in enumerate(all_sentences):
-            assignment_column = [sentence.eval(assignment) for assignment in sorted_assignments]
+            assignment_column = [
+                sentence.eval(assignment) 
+                for assignment in sorted_assignments
+            ]
             column = [sentence] + assignment_column
             table[index] = column
 
