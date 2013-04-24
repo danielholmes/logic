@@ -8,6 +8,7 @@ from test_language import *
 from test_syntax import *
 from test_parser import *
 from test_display import *
+from test_proof import *
 
 if __name__ == '__main__':
     unittest.main()

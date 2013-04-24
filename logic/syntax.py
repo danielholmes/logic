@@ -258,6 +258,10 @@ class Implication(CompoundSentence):
         return not self._antecedent.eval(assignment) or self._consequent.eval(assignment)
     
     @property
+    def consequent(self):
+        return self._consequent
+
+    @property
     def sub_sentences(self):
         return tuple((self._antecedent, self._consequent))
 

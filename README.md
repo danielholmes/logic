@@ -77,3 +77,10 @@ Conjunction is logically equivalent to complex: False
 | 0 | 0 | 0 | 0 |    0    |          1           |
 +---+---+---+---+---------+----------------------+
 ```
+
+Todo
+----
+- Add properties of sentences: valid, contingent, unsatisfiable. Satisfiable, falsifiable
+- Linear proofs - Mendelson System prover , full implementation (Implication Creation, Implication Distribution and Conflict Realisation)
+    solver runs 4 rules in a brute force way, using a certain limit, then provides shortest proofs
+- An "efficient" renderer - showing parenthesis only where needed considering order of precedence
