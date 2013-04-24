@@ -19,6 +19,55 @@ class ImplicationElimination(object):
     def __repr__(self):
         return "%s(%r)" % (self.__class__, self.implication)
 
+class ImplicationDistribution(object):
+    def __init__(self, sentence_1, sentence_2, sentence_3):
+        self._sentence_1 = sentence_1
+        self._sentence_2 = sentence_2
+        self._sentence_3 = sentence_3
+    
+    @property
+    def resulting_premise(self):
+        return Implication(
+            Implication(self._sentence_1, Implication(self._sentence_2, self._sentence_3)),
+            Implication(
+                Implication(self._sentence_1, self._sentence_2),
+                Implication(self._sentence_1, self._sentence_3)
+            )
+        )
+
+class ImplicationCreation(object):
+    def __init__(self, sentence_1, sentence_2):
+        self._sentence_1 = sentence_1
+        self._sentence_2 = sentence_2
+    
+    @property
+    def resulting_premise(self):
+        return Implication(
+            self._sentence_1,
+            Implication(self._sentence_2, self._sentence_1)
+        )
+
+class ContradictionRealisation(object):
+    def __init__(self, sentence_1, sentence_2):
+        self._sentence_1 = sentence_1
+        self._sentence_2 = sentence_2
+    
+    @property
+    def resulting_premise(self):
+        return Implication(
+            Implication(
+                Negation(self._sentence_1),
+                self._sentence_2
+            ),
+            Implication(
+                Implication(
+                    Negation(self._sentence_1), 
+                    Negation(self._sentence_2)
+                ),
+                self._sentence_1
+            )
+        )
+
 class ProofProblem(object):
     def __init__(self, premises, conclusion):
         self._premises = tuple(premises)
