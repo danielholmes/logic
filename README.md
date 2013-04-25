@@ -81,6 +81,11 @@ Conjunction is logically equivalent to complex: False
 Todo
 ----
 - Add properties of sentences: valid, contingent, unsatisfiable. Satisfiable, falsifiable
-- Linear proofs - Mendelson System prover , full implementation (Implication Creation, Implication Distribution and Conflict Realisation)
-    solver runs 4 rules in a brute force way, using a certain limit, then provides shortest proofs
+- Linear proofs - Mendelson System
+    - brute force solver configurable for levels to search, etc
+    - solver runs 4 rules in a brute force way, using a certain limit, then provides shortest proofs
+    - Brute force solver is perhaps configurable by system
+- Fitch System
+- Structured proof solver (including Implication Introduction). Do structured proofs only have I.E. and I.I.?
+- Linear proof renderer. Displays text list of premises to conclusion and the applied rule on the right
 - An "efficient" renderer - showing parenthesis only where needed considering order of precedence

@@ -70,7 +70,7 @@ class ContradictionRealisation(object):
 
 class ProofProblem(object):
     def __init__(self, premises, conclusion):
-        self._premises = tuple(premises)
+        self._premises = frozenset(premises)
         self._conclusion = conclusion
 
     @property
